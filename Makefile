@@ -1,5 +1,9 @@
 default:
+	find . -type f -path "./*" -name "*.class" -delete
 	javac PeerProcess.java && javac StartRemoteServers.java
 	
-run:
+runAll:
 	java StartRemoteServers
+
+runPeer:
+	java PeerProcess ${peerid}
