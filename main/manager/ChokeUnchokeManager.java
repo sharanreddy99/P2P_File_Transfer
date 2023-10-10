@@ -7,7 +7,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 
-import main.Controller;
+import main.PeerController;
 import main.helper.AsyncUtil;
 import main.helper.CommonPropertyUtil;
 import main.helper.MessageLoggerUtil;
@@ -18,7 +18,7 @@ import main.helper.MessageLoggerUtil;
 @SuppressWarnings("unchecked")
 public class ChokeUnchokeManager implements Runnable {
 
-	private Controller controller = null;
+	private PeerController controller = null;
 	private MessageLoggerUtil logger = null;
 
 	private static volatile ChokeUnchokeManager instance = null; // static instance
@@ -32,7 +32,7 @@ public class ChokeUnchokeManager implements Runnable {
 	 * @param controller
 	 * @return
 	 */
-	public static synchronized ChokeUnchokeManager getInstance(Controller controller) {
+	public static synchronized ChokeUnchokeManager getInstance(PeerController controller) {
 		if (instance == null) {
 			if (controller == null) {
 				return null;

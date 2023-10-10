@@ -4,7 +4,7 @@ import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-import main.Controller;
+import main.PeerController;
 import main.constants.Constants;
 import main.helper.CommonPropertyUtil;
 import main.manager.filehandler.BitFieldHandler;
@@ -15,7 +15,7 @@ public class ChunkRequester implements Runnable {
 	private static final String LOGGER_PREFIX = ChunkRequester.class.getSimpleName();
 
 	private BlockingQueue<Peer2PeerMessage> messageQueue;
-	private Controller controller;
+	private PeerController controller;
 	private PeerHandler peerHandler;
 	private BitFieldHandler neighborPeerBitFieldhandler = null;
 
@@ -29,7 +29,7 @@ public class ChunkRequester implements Runnable {
 	 * @param peerHandler
 	 * @return
 	 */
-	public static ChunkRequester getNewInstance(Controller controller, PeerHandler peerHandler) {
+	public static ChunkRequester getNewInstance(PeerController controller, PeerHandler peerHandler) {
 		// System.out.println(LOGGER_PREFIX+" Initializing ChunkRequester");
 
 		if (controller == null || peerHandler == null) {

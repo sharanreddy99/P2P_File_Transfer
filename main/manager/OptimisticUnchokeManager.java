@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.ScheduledFuture;
 
-import main.Controller;
+import main.PeerController;
 import main.helper.AsyncUtil;
 import main.helper.MessageLoggerUtil;
 
@@ -13,7 +13,7 @@ import main.helper.MessageLoggerUtil;
  */
 public class OptimisticUnchokeManager implements Runnable {
 	private static OptimisticUnchokeManager instance = null;
-	private Controller controller = null;
+	private PeerController controller = null;
 	private MessageLoggerUtil logger = null;
 
 	private ScheduledFuture<?> task = null;
@@ -24,7 +24,7 @@ public class OptimisticUnchokeManager implements Runnable {
 	 * @param controller
 	 * @return
 	 */
-	public static synchronized OptimisticUnchokeManager getInstance(Controller controller) {
+	public static synchronized OptimisticUnchokeManager getInstance(PeerController controller) {
 		if (instance == null) {
 			if (controller == null) {
 				return null;

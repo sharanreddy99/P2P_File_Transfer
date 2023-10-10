@@ -16,7 +16,7 @@ public class PeerServer implements Runnable {
 
 	private PeerInfoHelper peerConfigurationReader; // PeerInfo.cfg data
 	private String peerServerID; // peer server id
-	private Controller controller;
+	private PeerController controller;
 	private ServerSocket serverSocket;
 
 	private boolean serverCompleted = false;
@@ -30,7 +30,7 @@ public class PeerServer implements Runnable {
 	 * @param controller
 	 * @return
 	 */
-	public static PeerServer getInstance(String peerServerID, Controller controller) {
+	public static PeerServer getInstance(String peerServerID, PeerController controller) {
 		if (instance == null) {
 			instance = new PeerServer();
 			instance.peerServerID = peerServerID;
@@ -48,7 +48,7 @@ public class PeerServer implements Runnable {
 	 * @param controller
 	 * @return
 	 */
-	public boolean init(Controller controller) {
+	public boolean init(PeerController controller) {
 		peerConfigurationReader = PeerInfoHelper.getInstance();
 		return peerConfigurationReader != null;
 	}

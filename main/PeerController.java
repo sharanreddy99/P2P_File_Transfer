@@ -22,7 +22,7 @@ import main.messageTypes.Piece;
 /**
  * Controller
  */
-public class Controller {
+public class PeerController {
 
 	private ArrayList<PeerHandler> peerHandlers;
 	private PieceManager pieceManager;
@@ -39,7 +39,7 @@ public class Controller {
 
 	private boolean connectionEstablished = false;
 
-	private static volatile Controller instance = null;
+	private static volatile PeerController instance = null;
 
 	/**
 	 * get instance
@@ -47,9 +47,9 @@ public class Controller {
 	 * @param peerID
 	 * @return
 	 */
-	public static synchronized Controller getInstance(String peerID) {
+	public static synchronized PeerController getInstance(String peerID) {
 		if (instance == null) {
-			instance = new Controller();
+			instance = new PeerController();
 			instance.peerId = peerID;
 			if (!instance.init()) {
 				instance = null;

@@ -6,7 +6,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 
-import main.Controller;
+import main.PeerController;
 import main.constants.Constants;
 import main.helper.MessageLoggerUtil;
 import main.messageTypes.HandshakeMessage;
@@ -17,7 +17,7 @@ import main.messageTypes.PeerMessage;
  * Peer Handler
  */
 public class PeerHandler implements Runnable {
-	private Controller controller; // controller
+	private PeerController controller; // controller
 	private ObjectInputStream objectInputStream; // neighbor peer input stream
 	private PeerMessageSender peerMessageSender; // peerMessageSender
 	private ChunkRequester chunkRequester;
@@ -43,7 +43,7 @@ public class PeerHandler implements Runnable {
 	 * @param controller
 	 * @return
 	 */
-	synchronized public static PeerHandler getNewInstance(Socket socket, Controller controller) {
+	synchronized public static PeerHandler getNewInstance(Socket socket, PeerController controller) {
 		PeerHandler peerHandler = new PeerHandler();
 		peerHandler.neighborSocket = socket;
 		peerHandler.controller = controller;
@@ -60,7 +60,7 @@ public class PeerHandler implements Runnable {
 	 * @param controller
 	 * @return
 	 */
-	synchronized private boolean init(Controller controller) {
+	synchronized private boolean init(PeerController controller) {
 		if (neighborSocket == null) {
 			return false;
 		}
