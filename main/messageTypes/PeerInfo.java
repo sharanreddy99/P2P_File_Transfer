@@ -1,4 +1,4 @@
-package main.message.meta;
+package main.messageTypes;
 
 /**
  * PeerInfo

@@ -1,11 +1,12 @@
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+
 import java.util.HashMap;
 
 import main.constants.Constants;
 import main.helper.OutputDisplayUtil;
 import main.helper.PeerInfoHelper;
-import main.message.meta.PeerInfo;
+import main.messageTypes.PeerInfo;
 
 /**
  * StartRemoteServers: This class starts the peering processes in each of the
@@ -48,7 +49,16 @@ public class StartRemoteServers {
 							runCommand, peer.getPeerId()));
 
 			// Run the command to start peers locally or remotely.
-			Runtime.getRuntime().exec(execCommand);
+			Process serverProcess = Runtime.getRuntime()
+					.exec(execCommand);
+
+			OutputDisplayUtil outputDisplayUtil = new OutputDisplayUtil(peer.getPeerId(),
+					new BufferedReader(new InputStreamReader(serverProcess.getInputStream())));
+			new Thread(outputDisplayUtil).start();
+
+			OutputDisplayUtil errorDisplayer = new OutputDisplayUtil(peer.getPeerId(),
+					new BufferedReader(new InputStreamReader(serverProcess.getErrorStream())));
+			new Thread(errorDisplayer).start();
 			Thread.sleep(Constants.SSH_TIMEOUT);
 
 			System.out.println(String.format("Started process for Peer: %s at host: %s on Port: %s", peer.getPeerId(),

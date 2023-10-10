@@ -1,7 +1,6 @@
-package main.message;
+package main.messageTypes;
 
 import main.manager.filehandler.BitFieldHandler;
-import main.message.meta.Piece;
 
 /**
  * Peer2PeerMessage

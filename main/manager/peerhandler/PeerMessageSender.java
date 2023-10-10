@@ -5,7 +5,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import main.constants.Constants;
-import main.message.PeerMessage;
+import main.messageTypes.PeerMessage;
 
 public class PeerMessageSender implements Runnable {
 	/* log */

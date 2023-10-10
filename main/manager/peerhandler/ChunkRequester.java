@@ -8,7 +8,7 @@ import main.Controller;
 import main.constants.Constants;
 import main.helper.CommonPropertyUtil;
 import main.manager.filehandler.BitFieldHandler;
-import main.message.Peer2PeerMessage;
+import main.messageTypes.Peer2PeerMessage;
 
 public class ChunkRequester implements Runnable {
 	/* log */

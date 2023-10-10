@@ -7,7 +7,7 @@ import java.util.HashMap;
 
 import main.helper.PeerInfoHelper;
 import main.manager.peerhandler.PeerHandler;
-import main.message.meta.PeerInfo;
+import main.messageTypes.PeerInfo;
 
 /**
  * PeerServer

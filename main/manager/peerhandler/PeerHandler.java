@@ -9,9 +9,9 @@ import java.nio.ByteBuffer;
 import main.Controller;
 import main.constants.Constants;
 import main.helper.MessageLoggerUtil;
-import main.message.HandshakeMessage;
-import main.message.Peer2PeerMessage;
-import main.message.PeerMessage;
+import main.messageTypes.HandshakeMessage;
+import main.messageTypes.Peer2PeerMessage;
+import main.messageTypes.PeerMessage;
 
 /**
  * Peer Handler

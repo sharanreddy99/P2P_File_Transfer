@@ -15,9 +15,9 @@ import main.manager.ChokeUnchokeManager;
 import main.manager.OptimisticUnchokeManager;
 import main.manager.filehandler.PieceManager;
 import main.manager.peerhandler.PeerHandler;
-import main.message.Peer2PeerMessage;
-import main.message.meta.PeerInfo;
-import main.message.meta.Piece;
+import main.messageTypes.Peer2PeerMessage;
+import main.messageTypes.PeerInfo;
+import main.messageTypes.Piece;
 
 /**
  * Controller

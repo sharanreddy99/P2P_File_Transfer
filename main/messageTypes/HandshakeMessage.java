@@ -1,4 +1,4 @@
-package main.message;
+package main.messageTypes;
 
 import main.constants.Constants;
 

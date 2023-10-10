@@ -3,9 +3,9 @@ package main.manager;
 import java.nio.ByteBuffer;
 
 import main.constants.Constants;
-import main.message.HandshakeMessage;
-import main.message.Peer2PeerMessage;
-import main.message.PeerMessage;
+import main.messageTypes.HandshakeMessage;
+import main.messageTypes.Peer2PeerMessage;
+import main.messageTypes.PeerMessage;
 
 /**
  * MessageManager

@@ -6,7 +6,7 @@ import java.io.RandomAccessFile;
 
 import main.constants.Constants;
 import main.helper.CommonPropertyUtil;
-import main.message.meta.Piece;
+import main.messageTypes.Piece;
 
 /**
  * Piece Manager
