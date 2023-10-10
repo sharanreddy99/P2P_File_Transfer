@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 
-import main.common.Constants;
+import main.constants.Constants;
 
 /**
  * common.cfg data

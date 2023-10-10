@@ -1,6 +1,6 @@
 package main.message;
 
-import main.common.Constants;
+import main.constants.Constants;
 
 /**
  * HandshakeMessage

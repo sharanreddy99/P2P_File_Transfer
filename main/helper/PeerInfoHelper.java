@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
-import main.common.Constants;
+import main.constants.Constants;
 import main.message.meta.PeerInfo;
 
 /**

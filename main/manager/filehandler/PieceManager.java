@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.RandomAccessFile;
 
-import main.common.Constants;
+import main.constants.Constants;
 import main.helper.CommonPropertyUtil;
 import main.message.meta.Piece;
 

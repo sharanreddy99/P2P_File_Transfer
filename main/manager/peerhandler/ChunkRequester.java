@@ -5,7 +5,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import main.Controller;
-import main.common.Constants;
+import main.constants.Constants;
 import main.helper.CommonPropertyUtil;
 import main.manager.filehandler.BitFieldHandler;
 import main.message.Peer2PeerMessage;

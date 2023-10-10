@@ -7,7 +7,7 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 
 import main.Controller;
-import main.common.Constants;
+import main.constants.Constants;
 import main.helper.MessageLoggerUtil;
 import main.message.HandshakeMessage;
 import main.message.Peer2PeerMessage;

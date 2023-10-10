@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 
-import main.common.Constants;
+import main.constants.Constants;
 import main.helper.CommonPropertyUtil;
 import main.helper.MessageLoggerUtil;
 import main.helper.PeerInfoHelper;

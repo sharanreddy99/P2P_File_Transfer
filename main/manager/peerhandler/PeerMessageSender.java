@@ -4,7 +4,7 @@ import java.io.ObjectOutputStream;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-import main.common.Constants;
+import main.constants.Constants;
 import main.message.PeerMessage;
 
 public class PeerMessageSender implements Runnable {

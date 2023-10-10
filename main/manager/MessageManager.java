@@ -2,7 +2,7 @@ package main.manager;
 
 import java.nio.ByteBuffer;
 
-import main.common.Constants;
+import main.constants.Constants;
 import main.message.HandshakeMessage;
 import main.message.Peer2PeerMessage;
 import main.message.PeerMessage;

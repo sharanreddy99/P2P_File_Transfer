@@ -1,4 +1,4 @@
-package main.common;
+package main.constants;
 
 public class Constants {
 	// RemotePeers

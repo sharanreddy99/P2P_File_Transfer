@@ -1,4 +1,4 @@
-import main.common.Constants;
+import main.constants.Constants;
 import main.helper.OutputDisplayUtil;
 import main.helper.PeerInfoHelper;
 import main.message.meta.PeerInfo;
