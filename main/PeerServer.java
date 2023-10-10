@@ -13,76 +13,103 @@ import main.messageTypes.PeerInfo;
  * PeerServer
  */
 public class PeerServer implements Runnable {
+	private static volatile PeerServer instance = null;
 
-	private PeerInfoHelper peerConfigurationReader; // PeerInfo.cfg data
-	private String peerServerID; // peer server id
+	private String peerID;
+	private boolean serverStatus = false;
+
+	private PeerInfoHelper peerConfigReader;
 	private PeerController controller;
 	private ServerSocket serverSocket;
 
-	private boolean serverCompleted = false;
-
-	private static volatile PeerServer instance = null;
+	private PeerServer(String peerID, PeerController controller) {
+		this.peerID = peerID;
+		this.controller = controller;
+	}
 
 	/**
-	 * getInstance
+	 * getInstance: returns the peerServer instance
 	 * 
-	 * @param peerServerID
+	 * @param peerID
 	 * @param controller
 	 * @return
 	 */
-	public static PeerServer getInstance(String peerServerID, PeerController controller) {
+
+	public static PeerServer getInstance(String peerID, PeerController controller) {
 		if (instance == null) {
-			instance = new PeerServer();
-			instance.peerServerID = peerServerID;
-			instance.controller = controller;
-			if (!instance.init(controller)) {
+			instance = new PeerServer(peerID, controller);
+			if (instance.isPeerConfigAvailable(controller) == false) {
 				instance = null;
 			}
 		}
+
 		return instance;
 	}
 
 	/**
-	 * init
+	 * isPeerConfigAvailable: checks if the peer config instance is available (which
+	 * stores the information of each peer from the config file)
 	 * 
 	 * @param controller
-	 * @return
+	 * @return boolean
 	 */
-	public boolean init(PeerController controller) {
-		peerConfigurationReader = PeerInfoHelper.getInstance();
-		return peerConfigurationReader != null;
+	public boolean isPeerConfigAvailable(PeerController controller) {
+		peerConfigReader = PeerInfoHelper.getInstance();
+		return peerConfigReader != null;
 	}
 
 	/**
-	 * run server
+	 * getServerStatus: returns the server status
+	 * 
+	 * @param controller
+	 * @return boolean
+	 */
+	public synchronized boolean getServerStatus() {
+		return this.serverStatus;
+	}
+
+	/**
+	 * getServerStatus: sets the server status
+	 * 
+	 * @param controller
+	 * @return boolean
+	 */
+	public synchronized void setServerStatus(boolean serverStatus) {
+		this.serverStatus = serverStatus;
+	}
+
+	/**
+	 * runs the thread which begins the peering process for the current peer
 	 */
 	public void run() {
-		HashMap<String, PeerInfo> peerInfoMap = peerConfigurationReader.getPeerInfoMap();
-		PeerInfo serverPeerInfo = peerInfoMap.get(peerServerID);
-		int peerServerPortNumber = serverPeerInfo.getPort();
 		try {
-			serverSocket = new ServerSocket(peerServerPortNumber);
-			int count = controller.supposedToBeConnectedCount();
-			for (int i = 0; i < count; i++) {
-				Socket socketTmp = serverSocket.accept();
-				PeerHandler peerHandler = PeerHandler.getNewInstance(socketTmp, controller);
+			HashMap<String, PeerInfo> peerInfoMap = peerConfigReader.getPeerInfoMap();
+			PeerInfo serverPeerInfo = peerInfoMap.get(peerID);
 
-				controller.register(peerHandler);
+			serverSocket = new ServerSocket(serverPeerInfo.getPort());
+			int maxConnCount = controller.getMaxNewConnectionsCount();
+			for (int i = 0; i < maxConnCount; i++) {
+				// Accept upto max connections
+				Socket incomingSocketConn = serverSocket.accept();
+
+				// Create a peer handler instnace
+				PeerHandler peerHandler = PeerHandler.getNewInstance(incomingSocketConn, controller);
+
+				// Register the peer handler with the controller
+				controller.addPeerHandler(peerHandler);
+
+				// Start the peer handler
 				new Thread(peerHandler).start();
 			}
 
-			setServerCompleted(true);
+			// Set the peer handler
+			setServerStatus(true);
+
 		} catch (IOException e) {
+			System.out.printf("Exception occured inside the thread for peer: %s. Message: %s\n", peerID,
+					e.getMessage());
 			e.printStackTrace();
 		}
-	}
-
-	public synchronized boolean isServerCompleted() {
-		return serverCompleted;
-	}
-
-	public synchronized void setServerCompleted(boolean isPeerServerCompleted) {
-		this.serverCompleted = isPeerServerCompleted;
 	}
 
 }

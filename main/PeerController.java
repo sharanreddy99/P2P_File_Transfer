@@ -59,9 +59,9 @@ public class PeerController {
 	}
 
 	/**
-	 * start server
+	 * beginPeerProcess: starts the peer process.
 	 */
-	public void startController() {
+	public void beginPeerProcess() {
 
 		startServer(peerId); // start peer server
 
@@ -166,7 +166,7 @@ public class PeerController {
 	 * file download completed and shutdown
 	 */
 	public void fileDownloadComplete() {
-		if (!isConnection() || !peerServer.isServerCompleted()) {
+		if (!isConnection() || !peerServer.getServerStatus()) {
 			return;
 		}
 		// System.out.println("peerInfoPropertyUtil.getPeerInfoMap().size()="+peerInfoPropertyUtil.getPeerInfoMap().size());
@@ -192,7 +192,7 @@ public class PeerController {
 	 * 
 	 * @param peerHandler
 	 */
-	public synchronized void register(PeerHandler peerHandler) {
+	public synchronized void addPeerHandler(PeerHandler peerHandler) {
 		peerHandlers.add(peerHandler);
 	}
 
@@ -361,7 +361,7 @@ public class PeerController {
 	 * broadcast shutdown message
 	 */
 	public void broadcastShutdown() {
-		if (!isConnection() || !peerServer.isServerCompleted()) {
+		if (!isConnection() || !peerServer.getServerStatus()) {
 			return;
 		}
 
@@ -381,7 +381,7 @@ public class PeerController {
 	 *
 	 * @return
 	 */
-	public int supposedToBeConnectedCount() {
+	public int getMaxNewConnectionsCount() {
 		HashMap<String, PeerInfo> neighborPeerMap = peerInfoPropertyUtil.getPeerInfoMap();
 		Set<String> peerIDList = neighborPeerMap.keySet();
 

@@ -8,7 +8,7 @@ public class PeerProcess {
 		String peerID = args[0];
 
 		PeerController controller = PeerController.getInstance(peerID);
-		controller.startController();
+		controller.beginPeerProcess();
 
 	}
 
