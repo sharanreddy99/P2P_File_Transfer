@@ -1,7 +1,9 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 
 import main.constants.Constants;
-
+import main.helper.OutputDisplayUtil;
 import main.helper.PeerInfoHelper;
 import main.message.meta.PeerInfo;
 
@@ -30,6 +32,7 @@ public class StartRemoteServers {
 
 		if (Constants.IS_LOCAL_HOST) {
 			Runtime.getRuntime().exec("make");
+			Thread.sleep(Constants.SSH_TIMEOUT);
 		}
 
 		for (String key : peerMap.keySet()) {
