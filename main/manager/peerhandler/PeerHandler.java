@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 
 import main.PeerController;
 import main.constants.Constants;
-import main.helper.MessageLoggerUtil;
+import main.helper.LogHelper;
 import main.messageTypes.HandshakeMessage;
 import main.messageTypes.Peer2PeerMessage;
 import main.messageTypes.PeerMessage;
@@ -21,7 +21,7 @@ public class PeerHandler implements Runnable {
 	private ObjectInputStream objectInputStream; // neighbor peer input stream
 	private PeerMessageSender peerMessageSender; // peerMessageSender
 	private ChunkRequester chunkRequester;
-	private MessageLoggerUtil messageLoggerUtil; // log util
+	private LogHelper messageLoggerUtil; // log util
 
 	private String peerId; // peer id
 	private Socket neighborSocket; // neighbor peer socket

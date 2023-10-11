@@ -9,7 +9,7 @@ import java.util.Set;
 
 import main.constants.Constants;
 import main.helper.CommonPropertyUtil;
-import main.helper.MessageLoggerUtil;
+import main.helper.LogHelper;
 import main.helper.PeerInfoHelper;
 import main.manager.ChokeUnchokeManager;
 import main.manager.OptimisticUnchokeManager;
@@ -34,7 +34,7 @@ public class PeerController {
 	private ChokeUnchokeManager chokeUnchokeManager;
 	private OptimisticUnchokeManager optimisticUnchokeManager;
 	private PeerServer peerServer;
-	private MessageLoggerUtil logger;
+	private LogHelper logger;
 	private String peerId;
 
 	private boolean connectionEstablished = false;
@@ -42,7 +42,7 @@ public class PeerController {
 	private static volatile PeerController instance = null;
 
 	/**
-	 * get instance
+	 * getInstance: returns a singleton peerController instance for the given peer
 	 * 
 	 * @param peerID
 	 * @return
@@ -59,11 +59,11 @@ public class PeerController {
 	}
 
 	/**
-	 * beginPeerProcess: starts the peer process.
+	 * starts the peer process.
 	 */
 	public void beginPeerProcess() {
-
-		startServer(peerId); // start peer server
+		// start the current peer server
+		new Thread(peerServer).start();
 
 		connectToPreviousPeer(); // connect to peer neighbors
 
@@ -76,15 +76,6 @@ public class PeerController {
 		assert optimisticUnchokeManager != null;
 		optimisticUnchokeManager.start(0,
 				Integer.parseInt(CommonPropertyUtil.getProperty(Constants.OPTIMISTIC_UNCHOKE_INTERVAL)));
-	}
-
-	/**
-	 * start peer server
-	 * 
-	 * @param peerId
-	 */
-	private void startServer(String peerId) {
-		new Thread(peerServer).start();
 	}
 
 	/**
@@ -149,7 +140,7 @@ public class PeerController {
 			return false;
 		}
 
-		if ((logger = MessageLoggerUtil.init(peerId)) == null) {
+		if ((logger = LogHelper.init(peerId)) == null) {
 			System.out.println("Unable to Initialize logger object");
 			return false;
 		}
@@ -392,6 +383,7 @@ public class PeerController {
 				count++;
 			}
 		}
+
 		return count;
 	}
 
@@ -420,7 +412,7 @@ public class PeerController {
 		return chokedPeers;
 	}
 
-	public synchronized MessageLoggerUtil getLogger() {
+	public synchronized LogHelper getLogger() {
 		return logger;
 	}
 

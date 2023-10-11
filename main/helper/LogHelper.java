@@ -11,7 +11,7 @@ import main.constants.Constants;
 /**
  * MessageLoggerUtil
  */
-public class MessageLoggerUtil extends Logger {
+public class LogHelper extends Logger {
 	private final String logFileName; // log name
 	private final String peerId;// peerId
 
@@ -26,7 +26,7 @@ public class MessageLoggerUtil extends Logger {
 	 * @param logFileName
 	 * @param name
 	 */
-	public MessageLoggerUtil(String peerID, String logFileName, String name) {
+	public LogHelper(String peerID, String logFileName, String name) {
 		super(name, null);
 		this.logFileName = logFileName;
 		this.setLevel(Level.FINEST);
@@ -39,14 +39,14 @@ public class MessageLoggerUtil extends Logger {
 	 * @param peerId
 	 * @return
 	 */
-	public static MessageLoggerUtil init(String peerId) {
+	public static LogHelper init(String peerId) {
 		String directory = "" + Constants.LOG_FILE_DIRECTORY_NAME;
 		File file = new File(directory);
 		if (!file.exists()) {
 			file.mkdirs();
 		}
 
-		MessageLoggerUtil logger = new MessageLoggerUtil(peerId,
+		LogHelper logger = new LogHelper(peerId,
 				directory + "/" + Constants.LOG_FILE_NAME_PREFIX + peerId + ".log", Constants.LOGGER_NAME);
 		try {
 			logger.init();

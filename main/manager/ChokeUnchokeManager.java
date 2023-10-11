@@ -10,7 +10,7 @@ import java.util.concurrent.ScheduledFuture;
 import main.PeerController;
 import main.helper.AsyncUtil;
 import main.helper.CommonPropertyUtil;
-import main.helper.MessageLoggerUtil;
+import main.helper.LogHelper;
 
 /**
  * ChokeUnchokeManager
@@ -19,7 +19,7 @@ import main.helper.MessageLoggerUtil;
 public class ChokeUnchokeManager implements Runnable {
 
 	private PeerController controller = null;
-	private MessageLoggerUtil logger = null;
+	private LogHelper logger = null;
 
 	private static volatile ChokeUnchokeManager instance = null; // static instance
 

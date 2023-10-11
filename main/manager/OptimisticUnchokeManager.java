@@ -6,7 +6,7 @@ import java.util.concurrent.ScheduledFuture;
 
 import main.PeerController;
 import main.helper.AsyncUtil;
-import main.helper.MessageLoggerUtil;
+import main.helper.LogHelper;
 
 /**
  * OptimisticUnchokeManager
@@ -14,7 +14,7 @@ import main.helper.MessageLoggerUtil;
 public class OptimisticUnchokeManager implements Runnable {
 	private static OptimisticUnchokeManager instance = null;
 	private PeerController controller = null;
-	private MessageLoggerUtil logger = null;
+	private LogHelper logger = null;
 
 	private ScheduledFuture<?> task = null;
 
