@@ -6,7 +6,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Calendar;
-import java.util.logging.*;
 
 import main.constants.Constants;
 
@@ -27,6 +26,11 @@ public class LogHelper {
 		return this.logWriter != null;
 	}
 
+	/**
+	 * Create the log file path and initializes the write handler object.
+	 * 
+	 * @return null
+	 */
 	private void createLogFile() {
 		String directory = "" + Constants.LOG_FILE_DIRECTORY_NAME;
 		File file = new File(directory);
@@ -42,6 +46,12 @@ public class LogHelper {
 		}
 	}
 
+	/**
+	 * this function logs the appropriate message to the specified file
+	 * 
+	 * @param message - log message
+	 * @return null
+	 */
 	public synchronized void logMessage(String message) {
 		try {
 			Date date = Calendar.getInstance().getTime();
@@ -53,6 +63,12 @@ public class LogHelper {
 		}
 	}
 
+	/**
+	 * 
+	 * This function closes the log writer object.
+	 * 
+	 * @return null
+	 */
 	public void destroy() {
 		try {
 			if (this.logWriter != null) {

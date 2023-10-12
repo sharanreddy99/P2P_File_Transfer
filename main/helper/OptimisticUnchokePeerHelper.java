@@ -1,4 +1,4 @@
-package main.manager;
+package main.helper;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -8,11 +8,10 @@ import java.util.concurrent.TimeUnit;
 
 import main.PeerController;
 import main.constants.Constants;
-import main.helper.LogHelper;
 
 // This class runs the process of unchoking an optimistically chosen random choked peer.
-public class OptimisticUnchokeManager implements Runnable {
-	private static OptimisticUnchokeManager instance = null;
+public class OptimisticUnchokePeerHelper implements Runnable {
+	private static OptimisticUnchokePeerHelper instance = null;
 	private PeerController controller = null;
 	private LogHelper logger = null;
 
@@ -24,14 +23,14 @@ public class OptimisticUnchokeManager implements Runnable {
 	 * @param controller - main controller object that manages all other objects
 	 * @return null
 	 */
-	public static synchronized OptimisticUnchokeManager returnSingletonInstance(PeerController controller) {
+	public static synchronized OptimisticUnchokePeerHelper returnSingletonInstance(PeerController controller) {
 		if (instance == null) {
 
 			if (controller == null) {
 				return null;
 			}
 
-			instance = new OptimisticUnchokeManager();
+			instance = new OptimisticUnchokePeerHelper();
 			instance.controller = controller;
 			instance.logger = controller.getLogger();
 		}

@@ -10,19 +10,38 @@ import java.util.LinkedHashMap;
 import main.constants.Constants;
 import main.messageTypes.PeerInfo;
 
+/**
+ * This class extracts information related to all the peers from the peer config
+ * file
+ */
 public class PeerInfoHelper {
 
 	private LinkedHashMap<String, PeerInfo> peerInfoMap = null;
 	private static PeerInfoHelper instance = null;
 
+	/**
+	 * This function returns a singleton peerInfo helper instance which
+	 * has the all the peer info extracted from the config file.
+	 * 
+	 * @return PeerInfoHelper
+	 */
 	public static PeerInfoHelper returnSingletonInstance() {
 		if (instance == null) {
+
 			instance = new PeerInfoHelper();
 			instance.configPeerInfo();
 		}
+
 		return instance;
 	}
 
+	/**
+	 * This function returns a singleton peerInfo helper instance which
+	 * has the all the peer info extracted from the config file.
+	 * 
+	 * @return boolean indicating whether the extraction of peer info was successful
+	 *         or not
+	 */
 	public boolean configPeerInfo() {
 		peerInfoMap = new LinkedHashMap<>();
 		try {
@@ -40,15 +59,26 @@ public class PeerInfoHelper {
 			fir.close();
 		} catch (IOException e) {
 			e.printStackTrace();
+			return false;
 		}
 
 		return true;
 	}
 
+	/**
+	 * Returns the complete peer info
+	 * 
+	 * @return a map of peerID, peerInfo
+	 */
 	public HashMap<String, PeerInfo> getPeerInfoMap() {
 		return peerInfoMap;
 	}
 
+	/**
+	 * returns the single peer info object based on peerID
+	 * 
+	 * @return a single peer object
+	 */
 	public PeerInfo getPeerObjectByKey(String key) {
 		return this.peerInfoMap.get(key);
 	}

@@ -1,4 +1,4 @@
-package main.manager;
+package main.helper;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,15 +11,13 @@ import java.util.concurrent.TimeUnit;
 
 import main.PeerController;
 import main.constants.Constants;
-import main.helper.CommonPropertyUtil;
-import main.helper.LogHelper;
 
 // This class runs the process of choking an unchoking at regular intervals for the given peer in order to change its neighboring peers.
-public class ChokeUnchokeManager implements Runnable {
+public class ChokeUnchokePeerHelper implements Runnable {
 
 	private LogHelper logger;
 	private PeerController controller;
-	private static ChokeUnchokeManager instance = null; // static instance
+	private static ChokeUnchokePeerHelper instance = null; // static instance
 
 	private ScheduledFuture<?> process = null;
 
@@ -29,14 +27,14 @@ public class ChokeUnchokeManager implements Runnable {
 	 * @param controller - main controller object that manages all other objects
 	 * @return null
 	 */
-	public static synchronized ChokeUnchokeManager returnSingletonInstance(PeerController controller) {
+	public static synchronized ChokeUnchokePeerHelper returnSingletonInstance(PeerController controller) {
 		if (instance == null) {
 
 			if (controller == null) {
 				return null;
 			}
 
-			instance = new ChokeUnchokeManager();
+			instance = new ChokeUnchokePeerHelper();
 			instance.controller = controller;
 			instance.logger = controller.getLogger();
 		}

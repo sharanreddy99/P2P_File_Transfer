@@ -9,11 +9,11 @@ import java.util.Map;
 import java.util.Set;
 
 import main.constants.Constants;
+import main.helper.ChokeUnchokePeerHelper;
 import main.helper.CommonPropertyUtil;
 import main.helper.LogHelper;
+import main.helper.OptimisticUnchokePeerHelper;
 import main.helper.PeerInfoHelper;
-import main.manager.ChokeUnchokeManager;
-import main.manager.OptimisticUnchokeManager;
 import main.manager.filehandler.PieceManager;
 import main.manager.peerhandler.PeerHandler;
 import main.messageTypes.Peer2PeerMessage;
@@ -32,8 +32,8 @@ public class PeerController {
 	private final HashMap<String, String> peerCompleteMap = new HashMap<String, String>();
 	private ArrayList<String> chokedPeers = new ArrayList<String>();
 
-	private ChokeUnchokeManager chokeUnchokeManager;
-	private OptimisticUnchokeManager optimisticUnchokeManager;
+	private ChokeUnchokePeerHelper chokeUnchokeManager;
+	private OptimisticUnchokePeerHelper optimisticUnchokeManager;
 	private PeerServer peerServer;
 	private LogHelper logger;
 	private String peerId;
@@ -69,7 +69,7 @@ public class PeerController {
 
 		connectToPreviousPeer(); // connect to peer neighbors
 
-		chokeUnchokeManager = ChokeUnchokeManager.returnSingletonInstance(this);
+		chokeUnchokeManager = ChokeUnchokePeerHelper.returnSingletonInstance(this);
 		if (chokeUnchokeManager != null) {
 			int chokeUnchokeInterval = Integer
 					.parseInt(CommonPropertyUtil.getProperty(Constants.CHOKE_UNCHOKE_INTERVAL));
@@ -77,7 +77,7 @@ public class PeerController {
 
 		}
 
-		optimisticUnchokeManager = OptimisticUnchokeManager.returnSingletonInstance(this);
+		optimisticUnchokeManager = OptimisticUnchokePeerHelper.returnSingletonInstance(this);
 		if (optimisticUnchokeManager != null) {
 			int optimisticUnchokeInterval = Integer
 					.parseInt(CommonPropertyUtil.getProperty(Constants.OPTIMISTIC_UNCHOKE_INTERVAL));
