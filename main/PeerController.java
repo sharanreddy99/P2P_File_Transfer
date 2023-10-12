@@ -206,7 +206,7 @@ public class PeerController {
 	 * 
 	 * @return
 	 */
-	public HashMap<String, Double> getSpeed() {
+	public HashMap<String, Double> getDownloadRates() {
 		HashMap<String, Double> speedList = new HashMap<>();
 		for (int i = 0; i < peerHandlers.size(); i++) {
 			PeerHandler peerHandler = peerHandlers.get(i);

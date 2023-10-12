@@ -5,6 +5,9 @@ public class Constants {
 	public static final int SSH_TIMEOUT = 5000;
 	public static final boolean IS_LOCAL_HOST = true;
 
+	// LogMessageFormats
+	public static final String CHOKE_UNCHOKE_LOG_MESSAGE = "Peer [%s] has the preferred neighbors %s";
+
 	public static final int RAW_DATA_SIZE = 1000;
 	public static final int MAX_MESSAGE_SIZE = 40000;
 

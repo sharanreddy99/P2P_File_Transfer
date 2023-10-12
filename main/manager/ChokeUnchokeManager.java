@@ -1,148 +1,119 @@
 package main.manager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map.Entry;
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import main.PeerController;
-import main.helper.AsyncUtil;
+import main.constants.Constants;
 import main.helper.CommonPropertyUtil;
 import main.helper.LogHelper;
 
-/**
- * ChokeUnchokeManager
- */
-@SuppressWarnings("unchecked")
+// This class executes the tasks of choking an unchoking at regular intervals for the given peer in order to change its neighboring peers.
 public class ChokeUnchokeManager implements Runnable {
 
-	private PeerController controller = null;
-	private LogHelper logger = null;
-
-	private static volatile ChokeUnchokeManager instance = null; // static instance
-
-	/* task */
+	private LogHelper logger;
+	private PeerController controller;
 	private ScheduledFuture<?> task = null;
+	private static ChokeUnchokeManager instance = null; // static instance
 
 	/**
-	 * get instance
+	 * Returns the singleton instance of the choke unchoke manager
 	 * 
 	 * @param controller
 	 * @return
 	 */
 	public static synchronized ChokeUnchokeManager returnSingletonInstance(PeerController controller) {
 		if (instance == null) {
+
 			if (controller == null) {
 				return null;
 			}
 
 			instance = new ChokeUnchokeManager();
-			instance.logger = controller.getLogger();
 			instance.controller = controller;
+			instance.logger = controller.getLogger();
 		}
 
 		return instance;
 	}
 
-	public void destroy() {
-		// System.out.println(LOGGER_PREFIX + " Shutting down
-		// ChokeUnchokeManager......");
-		task.cancel(true);
-	}
-
+	/**
+	 * This function calculates the download rates for each peer and picks the first
+	 * k neighbors based on highest download rate speeds and chokes the rest of the
+	 * peers.
+	 * 
+	 * @return null
+	 */
 	public void run() {
-		int preferredNeighbors = 0;
-		HashMap<String, Double> speedMap = controller.getSpeed();
+		HashMap<String, Double> peerSpeedMap = controller.getDownloadRates();
 
+		int preferredNeighbors = 0;
 		if (CommonPropertyUtil.getProperty("NumberOfPreferredNeighbors") != null) {
 			preferredNeighbors = Integer.parseInt(CommonPropertyUtil.getProperty("NumberOfPreferredNeighbors"));
 		}
 
-		if (preferredNeighbors > speedMap.size()) {
-			// System.err.println("ChokeUnchokeManager : Number of preferred neighbors is
-			// more than total peers. Might be problem. ");
-		} else {
-			ArrayList<String> unchokePeers = new ArrayList<String>();
-			// Find top k preferred neighbours
+		// If we lesser peers than the actual peers count, then we have to pick the k
+		// best peers and choke the rest.
+		if (preferredNeighbors <= peerSpeedMap.size()) {
 
-			// creating a LinkedHashMap sorted on values for selecting top k
-			// preferred neighbors
-			Set<Entry<String, Double>> entrySet = speedMap.entrySet();
+			// Find top k preferred neighbours based on their download speeds
+			List<Map.Entry<String, Double>> peerSpeedList = new ArrayList<>(peerSpeedMap.entrySet());
 
-			Entry<String, Double>[] tempArr = new Entry[speedMap.size()];
-			tempArr = entrySet.toArray(tempArr);
+			// Sort in descending order based on speeds
+			Collections.sort(peerSpeedList, (peer1, peer2) -> peer2.getValue().compareTo(peer1.getValue()));
 
-			for (int i = 0; i < tempArr.length; i++) {
-				for (int j = i + 1; j < tempArr.length; j++) {
-					if (tempArr[i].getValue().compareTo(tempArr[j].getValue()) == -1) {
-						Entry<String, Double> tempEntry = tempArr[i];
-						tempArr[i] = tempArr[j];
-						tempArr[j] = tempEntry;
-					}
-				}
-			}
+			ArrayList<String> unchokePeersList = new ArrayList<String>();
+			ArrayList<String> chokePeersList = new ArrayList<String>();
 
-			// To make valuecomparator object working.
-			LinkedHashMap<String, Double> sortedSpeedMap = new LinkedHashMap<String, Double>();
-
-			// System.out.print(LOGGER_PREFIX + " Peer Speed : ");
-			for (int i = 0; i < tempArr.length; i++) {
-				sortedSpeedMap.put(tempArr[i].getKey(), tempArr[i].getValue());
-				// System.out.print(tempArr[i].getKey() + ":[" + tempArr[i].getValue() + "] " +
-				// " , ");
-			}
-			// System.out.println(" ");
-
+			// Pick the first k preferred neighbors from the sorted list and choke the rest
+			// of the neighbors.
 			int count = 0;
+			for (Map.Entry<String, Double> peer : peerSpeedList) {
+				if (count < preferredNeighbors) {
+					unchokePeersList.add(peer.getKey());
+				} else {
+					chokePeersList.add(peer.getKey());
+				}
 
-			// adding preferredNeighbors string to ArrayList
-
-			for (Entry<String, Double> entry : sortedSpeedMap.entrySet()) {
-				String key = entry.getKey();
-				unchokePeers.add(key);
-				count++; // maintaining count to break out of map iterator
-				if (count == preferredNeighbors)
-					break;
+				count++;
 			}
 
-			ArrayList<String> chokedPeerList = new ArrayList<String>();
-
-			for (String peerID : unchokePeers) {
-				sortedSpeedMap.remove(peerID);
-			}
-			chokedPeerList.addAll(sortedSpeedMap.keySet());
-
-			// System.out.print(LOGGER_PREFIX + ": Choking these peers: ");
-
-			for (String peerID : chokedPeerList) {
-				// System.out.print(peerID + " , ");
-			}
-
-			// System.out.println(" ");
-			// System.out.print(LOGGER_PREFIX + ": Unchoking these peers: ");
-
-			String logMessage = "Peer [" + controller.getPeerId() + "] has the preferred neighbors [";
-
-			for (String peerID : unchokePeers) {
-				// System.out.print(peerID + " , ");
-				logMessage += peerID + " , ";
-			}
-			// System.out.println(" ");
-
-			logMessage += "]";
+			String logMessage = String.format(Constants.CHOKE_UNCHOKE_LOG_MESSAGE, controller.getPeerId(),
+					String.join(",", unchokePeersList));
 
 			logger.logMessage(logMessage);
-
-			controller.unChokePeers(unchokePeers);
-			controller.setChokePeers(chokedPeerList);
+			controller.unChokePeers(unchokePeersList);
+			controller.setChokePeers(chokePeersList);
 		}
 	}
 
-	// delay iin seconds
+	/**
+	 * Repeatedly execute the choking and unchoking process for the given peer at
+	 * intervals extracted from the config file.
+	 * 
+	 * @param startDelay    - indicates the starting delay because the repetitve
+	 *                      process is triggered
+	 * @param intervalDelay - indicates the interval at which the choking and
+	 *                      unchoking process should execute
+	 * @return null
+	 */
 	public void start(int startDelay, int intervalDelay) {
-		task = AsyncUtil.submit(this, startDelay, intervalDelay);
+		task = Executors.newScheduledThreadPool(5).scheduleAtFixedRate(this, 10, intervalDelay, TimeUnit.SECONDS);
 	}
 
+	/**
+	 * Cancels the repetitive task either due to completion of peer downloads or any
+	 * other reason.
+	 * 
+	 * @return null
+	 */
+	public void destroy() {
+		task.cancel(true);
+	}
 }
