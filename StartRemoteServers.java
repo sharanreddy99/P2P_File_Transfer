@@ -1,10 +1,10 @@
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 
 import java.util.HashMap;
 
 import main.constants.Constants;
-import main.helper.OutputDisplayUtil;
 import main.helper.PeerInfoHelper;
 import main.messageTypes.PeerInfo;
 
@@ -52,17 +52,39 @@ public class StartRemoteServers {
 			Process serverProcess = Runtime.getRuntime()
 					.exec(execCommand);
 
-			OutputDisplayUtil outputDisplayUtil = new OutputDisplayUtil(peer.getPeerId(),
+			DisplayHelper stdOut = new DisplayHelper(peer.getPeerId(),
 					new BufferedReader(new InputStreamReader(serverProcess.getInputStream())));
-			new Thread(outputDisplayUtil).start();
 
-			OutputDisplayUtil errorDisplayer = new OutputDisplayUtil(peer.getPeerId(),
+			DisplayHelper stdErr = new DisplayHelper(peer.getPeerId(),
 					new BufferedReader(new InputStreamReader(serverProcess.getErrorStream())));
-			new Thread(errorDisplayer).start();
+
+			new Thread(stdOut).start();
+			new Thread(stdErr).start();
 			Thread.sleep(Constants.SSH_TIMEOUT);
 
 			System.out.println(String.format("Started process for Peer: %s at host: %s on Port: %s", peer.getPeerId(),
 					peer.getAddress(), peer.getPort()));
+		}
+	}
+}
+
+class DisplayHelper implements Runnable {
+	BufferedReader br;
+	String peerID;
+
+	public DisplayHelper(String peerID, BufferedReader br) {
+		this.peerID = peerID;
+		this.br = br;
+	}
+
+	public void run() {
+		try {
+			String row;
+			for (; (row = br.readLine()) != null;) {
+				System.out.printf("Message for Peer %s: %s\n", peerID, row);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 }

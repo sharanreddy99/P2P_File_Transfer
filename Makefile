@@ -8,6 +8,7 @@ default:
 	rm -f 1007/thefile
 	rm -f 1008/thefile
 	rm -f 1009/thefile
+	rm -rf log
 
 runAll:
 	java StartRemoteServers
