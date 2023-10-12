@@ -7,6 +7,8 @@ public class Constants {
 
 	// LogMessageFormats
 	public static final String CHOKE_UNCHOKE_LOG_MESSAGE = "Peer [%s] has the preferred neighbors %s";
+	public static final String FILE_DOWNLOADED_LOG_MESSAGE = "Peer [%s] has downloaded the complete file";
+	public static final String OPTIMISTICALLY_UNCHOKE_LOG_MESSAGE = "Peer [%s] has the optimistically unchoked neighbor [%s]";
 
 	public static final int RAW_DATA_SIZE = 1000;
 	public static final int MAX_MESSAGE_SIZE = 40000;

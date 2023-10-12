@@ -2,69 +2,85 @@ package main.manager;
 
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import main.PeerController;
-import main.helper.AsyncUtil;
+import main.constants.Constants;
 import main.helper.LogHelper;
 
-/**
- * OptimisticUnchokeManager
- */
+// This class runs the process of unchoking an optimistically chosen random choked peer.
 public class OptimisticUnchokeManager implements Runnable {
 	private static OptimisticUnchokeManager instance = null;
 	private PeerController controller = null;
 	private LogHelper logger = null;
 
-	private ScheduledFuture<?> task = null;
+	private ScheduledFuture<?> process = null;
 
 	/**
-	 * get instance
+	 * Returns the singleton instance of the optimistic unchoke manager
 	 * 
-	 * @param controller
-	 * @return
+	 * @param controller - main controller object that manages all other objects
+	 * @return null
 	 */
 	public static synchronized OptimisticUnchokeManager returnSingletonInstance(PeerController controller) {
 		if (instance == null) {
+
 			if (controller == null) {
 				return null;
 			}
+
 			instance = new OptimisticUnchokeManager();
 			instance.controller = controller;
 			instance.logger = controller.getLogger();
 		}
+
 		return instance;
 	}
 
-	public void destroy() {
-		task.cancel(true);
-	}
-
 	/**
-	 * run
+	 * This function randomly finds one choked peer from the given list of choked
+	 * nodes and unchokes it.
+	 * 
+	 * @return null
 	 */
 	public void run() {
 		ArrayList<String> chokedPeers = controller.getChokedPeers();
 		if (chokedPeers.size() > 0) {
-			Random random = new Random();
-			controller.optimisticallyUnChokePeers(chokedPeers.get(random.nextInt(chokedPeers.size())));
+			int randomPeer = new Random().nextInt(chokedPeers.size());
+			controller.optimisticallyUnChokePeers(chokedPeers.get(randomPeer));
 		}
 
-		controller.fileDownloadComplete();
-		if (controller.isDownloadComplete()) {
-			logger.logMessage("Peer [" + controller.getPeerId() + "] has downloaded the complete file.");
+		controller.updateFileDownloadStatus();
+		if (controller.isFileDownloadComplete()) {
+			logger.logMessage(String.format(Constants.FILE_DOWNLOADED_LOG_MESSAGE, controller.getPeerId()));
 			controller.broadcastShutdown();
 		}
 	}
 
 	/**
-	 * start delay task
+	 * Repeatedly execute the choking and unchoking process for the given peer at
+	 * intervals extracted from the config file.
 	 * 
-	 * @param startDelay
-	 * @param intervalDelay
+	 * @param startDelay    - indicates the starting delay because the repetitve
+	 *                      process is triggered
+	 * @param intervalDelay - indicates the interval at which the choking and
+	 *                      unchoking process should execute
+	 * @return null
 	 */
 	public void start(int startDelay, int intervalDelay) {
-		task = AsyncUtil.submit(this, intervalDelay);
+		process = Executors.newScheduledThreadPool(5).scheduleAtFixedRate(this, 10, intervalDelay, TimeUnit.SECONDS);
 	}
 
+	/**
+	 * Cancels the repetitive process either due to completion of peer downloads or
+	 * any
+	 * other reason.
+	 * 
+	 * @return null
+	 */
+	public void destroy() {
+		process.cancel(true);
+	}
 }

@@ -154,23 +154,25 @@ public class PeerController {
 	}
 
 	/**
-	 * file download completed and shutdown
+	 * This function checks if the file is downloaded by the peers or not and
+	 * updates accordingly.
+	 * 
 	 */
-	public void fileDownloadComplete() {
-		if (!isConnection() || !peerServer.getServerStatus()) {
+	public void updateFileDownloadStatus() {
+		if (isConnection() == false || peerServer.getServerStatus() == false) {
 			return;
 		}
-		// System.out.println("peerInfoHelperObj.getPeerInfoMap().size()="+peerInfoHelperObj.getPeerInfoMap().size());
-		// System.out.println("peerCompleteMap.size()="+peerCompleteMap.size());
+
 		if (peerInfoHelperObj.getPeerInfoMap().size() == peerCompleteMap.size()) {
-			shutdown();
+			this.terminateObjects();
 		}
 	}
 
 	/**
-	 * shutdown server
+	 * This function terminates all the necessary objects by closing and freeing
+	 * them out from memory and exits the process safely.
 	 */
-	public void shutdown() {
+	public void terminateObjects() {
 		chokeUnchokeManager.destroy();
 		optimisticUnchokeManager.destroy();
 		logger.destroy();
@@ -272,24 +274,22 @@ public class PeerController {
 	}
 
 	/**
-	 * the optimistically UnChokePeers
+	 * this function tries to unchoke the peer chosen optimistically and connects
+	 * with it if handshake is successful
 	 * 
-	 * @param peerToBeUnChoked
+	 * @param contenderID - the peer ID of the optimistically chosen unchoke peer.
+	 * @return null
 	 */
-	public void optimisticallyUnChokePeers(String peerToBeUnChoked) {
+	public void optimisticallyUnChokePeers(String contenderID) {
 		Peer2PeerMessage unChokeMessage = Peer2PeerMessage.create();
 		unChokeMessage.setMessageType(Constants.TYPE_UNCHOKE_MESSAGE);
 
-		logger.logMessage("Peer [" + peerId + "] has the optimistically unchoked neighbor [" + peerToBeUnChoked + "]");
-		for (int i = 0, peerHandlersSize = peerHandlers.size(); i < peerHandlersSize; i++) {
-			PeerHandler peerHandler = peerHandlers.get(i);
-			if (!peerHandler.getPeerId().equals(peerToBeUnChoked)) {
-				continue;
-			}
-			if (peerHandler.isHandshakeReceived()) {
-				peerHandler.sendUnchokeMessage(unChokeMessage);
-				break;
-			} else {
+		logger.logMessage(String.format(Constants.OPTIMISTICALLY_UNCHOKE_LOG_MESSAGE, peerId, contenderID));
+		for (PeerHandler peerHandler : this.peerHandlers) {
+			if (peerHandler.getPeerId().equals(contenderID)) {
+				if (peerHandler.isHandshakeReceived()) {
+					peerHandler.sendUnchokeMessage(unChokeMessage);
+				}
 				break;
 			}
 		}
@@ -349,21 +349,24 @@ public class PeerController {
 	}
 
 	/**
-	 * broadcast shutdown message
+	 * This function informs all other peers to terminate the connection as the
+	 * current peer will be shutting down due to completion of task.
 	 */
 	public void broadcastShutdown() {
-		if (!isConnection() || !peerServer.getServerStatus()) {
+		if (isConnection() == false || peerServer.getServerStatus() == false) {
 			return;
 		}
 
-		// shutdown message
+		// Create a shutdown mesage
 		Peer2PeerMessage shutdownMessage = Peer2PeerMessage.create();
 		shutdownMessage.setMessageType(Constants.SHUTDOWN_MESSAGE);
 
-		// file download
+		// Mark that the current peer has successfully downloaded the file.
 		markFileDownloadComplete(peerId);
-		for (int i = 0, peerHandlersSize = peerHandlers.size(); i < peerHandlersSize; i++) {
-			PeerHandler peerHandler = peerHandlers.get(i);
+
+		// Send shutdown messages to all other peers so that they can request the
+		// missing pieces from other peers.
+		for (PeerHandler peerHandler : peerHandlers) {
 			peerHandler.sendShutdownMessage(shutdownMessage);
 		}
 	}
@@ -420,7 +423,7 @@ public class PeerController {
 		return connectionEstablished;
 	}
 
-	public boolean isDownloadComplete() {
+	public boolean isFileDownloadComplete() {
 		return pieceManager.hasDownloadFileComplete();
 	}
 

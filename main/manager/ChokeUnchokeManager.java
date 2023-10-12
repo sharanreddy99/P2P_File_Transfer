@@ -14,19 +14,20 @@ import main.constants.Constants;
 import main.helper.CommonPropertyUtil;
 import main.helper.LogHelper;
 
-// This class executes the tasks of choking an unchoking at regular intervals for the given peer in order to change its neighboring peers.
+// This class runs the process of choking an unchoking at regular intervals for the given peer in order to change its neighboring peers.
 public class ChokeUnchokeManager implements Runnable {
 
 	private LogHelper logger;
 	private PeerController controller;
-	private ScheduledFuture<?> task = null;
 	private static ChokeUnchokeManager instance = null; // static instance
+
+	private ScheduledFuture<?> process = null;
 
 	/**
 	 * Returns the singleton instance of the choke unchoke manager
 	 * 
-	 * @param controller
-	 * @return
+	 * @param controller - main controller object that manages all other objects
+	 * @return null
 	 */
 	public static synchronized ChokeUnchokeManager returnSingletonInstance(PeerController controller) {
 		if (instance == null) {
@@ -104,16 +105,17 @@ public class ChokeUnchokeManager implements Runnable {
 	 * @return null
 	 */
 	public void start(int startDelay, int intervalDelay) {
-		task = Executors.newScheduledThreadPool(5).scheduleAtFixedRate(this, 10, intervalDelay, TimeUnit.SECONDS);
+		process = Executors.newScheduledThreadPool(5).scheduleAtFixedRate(this, 10, intervalDelay, TimeUnit.SECONDS);
 	}
 
 	/**
-	 * Cancels the repetitive task either due to completion of peer downloads or any
+	 * Cancels the repetitive process either due to completion of peer downloads or
+	 * any
 	 * other reason.
 	 * 
 	 * @return null
 	 */
 	public void destroy() {
-		task.cancel(true);
+		process.cancel(true);
 	}
 }
