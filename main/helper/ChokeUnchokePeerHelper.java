@@ -103,7 +103,8 @@ public class ChokeUnchokePeerHelper implements Runnable {
 	 * @return null
 	 */
 	public void start(int startDelay, int intervalDelay) {
-		process = Executors.newScheduledThreadPool(5).scheduleAtFixedRate(this, 10, intervalDelay, TimeUnit.SECONDS);
+		process = Executors.newScheduledThreadPool(5).scheduleAtFixedRate(this, startDelay, intervalDelay,
+				TimeUnit.SECONDS);
 	}
 
 	/**
