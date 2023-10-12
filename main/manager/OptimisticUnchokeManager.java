@@ -24,7 +24,7 @@ public class OptimisticUnchokeManager implements Runnable {
 	 * @param controller
 	 * @return
 	 */
-	public static synchronized OptimisticUnchokeManager getInstance(PeerController controller) {
+	public static synchronized OptimisticUnchokeManager returnSingletonInstance(PeerController controller) {
 		if (instance == null) {
 			if (controller == null) {
 				return null;
@@ -52,7 +52,7 @@ public class OptimisticUnchokeManager implements Runnable {
 
 		controller.fileDownloadComplete();
 		if (controller.isDownloadComplete()) {
-			logger.info("Peer [" + controller.getPeerId() + "] has downloaded the complete file.");
+			logger.logMessage("Peer [" + controller.getPeerId() + "] has downloaded the complete file.");
 			controller.broadcastShutdown();
 		}
 	}

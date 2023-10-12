@@ -32,7 +32,7 @@ public class ChokeUnchokeManager implements Runnable {
 	 * @param controller
 	 * @return
 	 */
-	public static synchronized ChokeUnchokeManager getInstance(PeerController controller) {
+	public static synchronized ChokeUnchokeManager returnSingletonInstance(PeerController controller) {
 		if (instance == null) {
 			if (controller == null) {
 				return null;
@@ -133,7 +133,7 @@ public class ChokeUnchokeManager implements Runnable {
 
 			logMessage += "]";
 
-			logger.info(logMessage);
+			logger.logMessage(logMessage);
 
 			controller.unChokePeers(unchokePeers);
 			controller.setChokePeers(chokedPeerList);

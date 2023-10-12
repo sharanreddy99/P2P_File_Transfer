@@ -5,10 +5,16 @@ package main.messageTypes;
  */
 public class PeerInfo {
 
-	private String address;
+	private String ID, address;
 	private int port;
-	private String peerId;
-	private boolean fileExist;
+	private boolean isFilePresent;
+
+	public PeerInfo(String ID, String address, String port, String fileParam) {
+		this.ID = ID;
+		this.address = address;
+		this.port = Integer.parseInt(port);
+		this.isFilePresent = fileParam.equals("1");
+	}
 
 	public String getAddress() {
 		return address;
@@ -26,19 +32,23 @@ public class PeerInfo {
 		this.port = port;
 	}
 
-	public String getPeerId() {
-		return peerId;
+	public void setPort(String port) {
+		this.port = Integer.parseInt(port);
 	}
 
-	public void setPeerId(String peerId) {
-		this.peerId = peerId;
+	public String getPeerId() {
+		return this.ID;
+	}
+
+	public void setPeerId(String ID) {
+		this.ID = ID;
 	}
 
 	public boolean isFileExist() {
-		return fileExist;
+		return this.isFilePresent;
 	}
 
-	public void setFileExist(boolean fileExist) {
-		this.fileExist = fileExist;
+	public void setFileExist(boolean fileStatus) {
+		this.isFilePresent = fileStatus;
 	}
 }

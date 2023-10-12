@@ -18,7 +18,7 @@ public class MessageManager {
 	 * 
 	 * @return
 	 */
-	public static MessageManager getInstance() {
+	public static MessageManager returnSingletonInstance() {
 		if (instance == null) {
 			instance = new MessageManager();
 		}

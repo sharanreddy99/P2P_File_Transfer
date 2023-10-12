@@ -29,7 +29,7 @@ public class PieceManager {
 	 * @param peerID
 	 * @return
 	 */
-	public synchronized static PieceManager getInstance(boolean isFileExists, String peerID) {
+	public synchronized static PieceManager returnSingletonInstance(boolean isFileExists, String peerID) {
 		if (instance == null) {
 			instance = new PieceManager();
 			if (!instance.init(isFileExists, peerID)) {
@@ -47,7 +47,7 @@ public class PieceManager {
 	 * @return
 	 */
 	public boolean init(boolean isFileExists, String peerID) {
-		// get config info: PieceSize
+		// get config logMessage(: PieceSize
 		if (CommonPropertyUtil.getProperty("PieceSize") != null)
 			size = Integer.parseInt(CommonPropertyUtil.getProperty("PieceSize"));
 		else {
@@ -55,7 +55,7 @@ public class PieceManager {
 			// File!!!");
 		}
 
-		// get config info: FileSize
+		// get config logMessage(: FileSize
 		if (CommonPropertyUtil.getProperty("FileSize") != null) {
 			numOfPieces = (int) Math.ceil(Integer.parseInt(CommonPropertyUtil.getProperty("FileSize")) / (size * 1.0));
 		}

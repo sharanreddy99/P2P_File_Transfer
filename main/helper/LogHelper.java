@@ -1,165 +1,65 @@
 package main.helper;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Calendar;
 import java.util.logging.*;
 
 import main.constants.Constants;
 
 /**
- * MessageLoggerUtil
+ * This class helps in logging each action according to the specifications.
  */
-public class LogHelper extends Logger {
-	private final String logFileName; // log name
-	private final String peerId;// peerId
+public class LogHelper {
+	private String peerID;
+	private String fileName;
+	private BufferedWriter logWriter;
 
-	private FileHandler fileHandler;
-
-	private SimpleDateFormat formatter = null;
-
-	/**
-	 * construct
-	 * 
-	 * @param peerID
-	 * @param logFileName
-	 * @param name
-	 */
-	public LogHelper(String peerID, String logFileName, String name) {
-		super(name, null);
-		this.logFileName = logFileName;
-		this.setLevel(Level.FINEST);
-		this.peerId = peerID;
+	public LogHelper(String peerID) {
+		this.peerID = peerID;
+		this.createLogFile();
 	}
 
-	/**
-	 * init
-	 * 
-	 * @param peerId
-	 * @return
-	 */
-	public static LogHelper init(String peerId) {
+	public boolean isLoggerInitialized() {
+		return this.logWriter != null;
+	}
+
+	private void createLogFile() {
 		String directory = "" + Constants.LOG_FILE_DIRECTORY_NAME;
 		File file = new File(directory);
 		if (!file.exists()) {
 			file.mkdirs();
 		}
 
-		LogHelper logger = new LogHelper(peerId,
-				directory + "/" + Constants.LOG_FILE_NAME_PREFIX + peerId + ".log", Constants.LOGGER_NAME);
+		this.fileName = String.format("%s/%s%s.log", directory, Constants.LOG_FILE_NAME_PREFIX, peerID);
 		try {
-			logger.init();
-		} catch (Exception e) {
-			e.printStackTrace();
-			logger.close();
-			logger = null;
-			System.out.println("Unable to create or initialize logger");
+			this.logWriter = new BufferedWriter(new FileWriter(this.fileName));
+		} catch (IOException e) {
+			System.out.printf("Exception occured while creating log file. Message: %s", e.getMessage());
 		}
-		return logger;
-
 	}
 
-	/**
-	 * inner init
-	 * 
-	 * @throws SecurityException
-	 * @throws IOException
-	 */
-	private void init() throws SecurityException, IOException {
-		fileHandler = new FileHandler(logFileName);
-		fileHandler.setFormatter(new SimpleFormatter() {
-			@Override
-			public synchronized String format(LogRecord record) {
-				if (record != null) {
-					return record.getMessage();
-				} else {
-					return null;
-				}
-			}
-
-			@Override
-			public synchronized String formatMessage(LogRecord record) {
-				return this.format(record);
-			}
-		});
-
-		formatter = new SimpleDateFormat("E, dd MMM yyyy hh:mm:ss a");
-		this.addHandler(fileHandler);
-	}
-
-	/**
-	 * close
-	 */
-	public void close() {
+	public synchronized void logMessage(String message) {
 		try {
-			if (fileHandler != null) {
-				fileHandler.close();
+			Date date = Calendar.getInstance().getTime();
+			this.logWriter.write(String.format("[%s]: %s\n", date, message) + "\n");
+			this.logWriter.flush();
+		} catch (IOException e) {
+			System.out.printf("Exception occured while writing to log file: %s. Message: %s", this.fileName,
+					e.getMessage());
+		}
+	}
+
+	public void destroy() {
+		try {
+			if (this.logWriter != null) {
+				this.logWriter.close();
 			}
 		} catch (Exception e) {
-			System.out.println("Unable to close logger.");
-			e.printStackTrace();
+			System.out.println("Exception occured while closing the logger object");
 		}
-	}
-
-	/**
-	 * print error log
-	 * 
-	 * @param prefix
-	 * @param message
-	 * @param e
-	 */
-	public void error(String prefix, String message, Exception e) {
-		this.log(Level.SEVERE, "[" + prefix + "]: " + message);
-		if (e != null) {
-			StackTraceElement[] stackTrace = e.getStackTrace();
-			this.log(Level.FINEST, "[" + prefix + "]: " + e.getMessage());
-			for (StackTraceElement stackTraceElement : stackTrace) {
-				this.log(Level.FINEST, stackTraceElement.toString());
-			}
-		}
-	}
-
-	public void error(String message) {
-		this.log(message, Level.SEVERE);
-	}
-
-	public void debug(String message) {
-		this.log(message, Level.INFO);
-	}
-
-	/**
-	 * print warn log
-	 * 
-	 * @param message
-	 */
-	public void warning(String message) {
-		this.log(message, Level.WARNING);
-	}
-
-	/**
-	 * print info log
-	 * 
-	 * @param message
-	 */
-	public synchronized void info(String message) {
-		this.log(message, Level.INFO);
-	}
-
-	/**
-	 * print log with target log level
-	 * 
-	 * @param message
-	 * @param level
-	 */
-	public synchronized void log(String message, Level level) {
-		String date = formatter.format(Calendar.getInstance().getTime());
-		this.log(Level.INFO, "[" + date + "]: Peer [peer_ID " + peerId + "] " + message);
-	}
-
-	@Override
-	public synchronized void log(Level level, String message) {
-		super.log(level, message);
-		super.log(level, "\n");
 	}
 }

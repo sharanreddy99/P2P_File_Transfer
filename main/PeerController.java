@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import main.constants.Constants;
@@ -26,7 +27,7 @@ public class PeerController {
 
 	private ArrayList<PeerHandler> peerHandlers;
 	private PieceManager pieceManager;
-	private PeerInfoHelper peerInfoPropertyUtil;
+	private PeerInfoHelper peerInfoHelperObj;
 
 	private final HashMap<String, String> peerCompleteMap = new HashMap<String, String>();
 	private ArrayList<String> chokedPeers = new ArrayList<String>();
@@ -42,16 +43,17 @@ public class PeerController {
 	private static volatile PeerController instance = null;
 
 	/**
-	 * getInstance: returns a singleton peerController instance for the given peer
+	 * returnSingletonInstance: returns a singleton peerController instance for the
+	 * given peer
 	 * 
 	 * @param peerID
 	 * @return
 	 */
-	public static synchronized PeerController getInstance(String peerID) {
+	public static synchronized PeerController returnSingletonInstance(String peerID) {
 		if (instance == null) {
 			instance = new PeerController();
 			instance.peerId = peerID;
-			if (!instance.init()) {
+			if (!instance.configControler()) {
 				instance = null;
 			}
 		}
@@ -67,31 +69,41 @@ public class PeerController {
 
 		connectToPreviousPeer(); // connect to peer neighbors
 
-		chokeUnchokeManager = ChokeUnchokeManager.getInstance(this);
-		assert chokeUnchokeManager != null;
-		chokeUnchokeManager.start(0,
-				Integer.parseInt(CommonPropertyUtil.getProperty(Constants.CHOKE_UNCHOKE_INTERVAL)));
+		chokeUnchokeManager = ChokeUnchokeManager.returnSingletonInstance(this);
+		if (chokeUnchokeManager != null) {
+			int chokeUnchokeInterval = Integer
+					.parseInt(CommonPropertyUtil.getProperty(Constants.CHOKE_UNCHOKE_INTERVAL));
+			chokeUnchokeManager.start(0, chokeUnchokeInterval);
 
-		optimisticUnchokeManager = OptimisticUnchokeManager.getInstance(this);
-		assert optimisticUnchokeManager != null;
-		optimisticUnchokeManager.start(0,
-				Integer.parseInt(CommonPropertyUtil.getProperty(Constants.OPTIMISTIC_UNCHOKE_INTERVAL)));
+		}
+
+		optimisticUnchokeManager = OptimisticUnchokeManager.returnSingletonInstance(this);
+		if (optimisticUnchokeManager != null) {
+			int optimisticUnchokeInterval = Integer
+					.parseInt(CommonPropertyUtil.getProperty(Constants.OPTIMISTIC_UNCHOKE_INTERVAL));
+			optimisticUnchokeManager.start(0, optimisticUnchokeInterval);
+		}
 	}
 
 	/**
 	 * Connect to previous peer neighbors as per the project requirement.
 	 */
 	private void connectToPreviousPeer() {
-		HashMap<String, PeerInfo> peerMap = peerInfoPropertyUtil.getPeerInfoMap();
-		Set<String> peerIdList = peerMap.keySet();
+		HashMap<String, PeerInfo> peerInfoMap = peerInfoHelperObj.getPeerInfoMap();
 
-		for (Iterator<String> iterator = peerIdList.iterator(); iterator.hasNext();) {
-			String peerIdTmp = iterator.next();
-			if (Integer.parseInt(peerIdTmp) < Integer.parseInt(peerId)) {
-				makeConnection(peerMap.get(peerIdTmp)); // connect to neighbor
+		try {
+			for (Map.Entry<String, PeerInfo> set : peerInfoMap.entrySet()) {
+				if (Integer.parseInt(set.getKey()) < Integer.parseInt(peerId)) {
+					makeConnection(peerInfoMap.get(set.getKey()));
+				}
 			}
+
+			setAllPeersConnection(true);
+
+		} catch (IOException e) {
+			System.out.printf("Exception occured while creating connections with neighbours. Message: %s\n",
+					e.getMessage());
 		}
-		setAllPeersConnection(true);
 	}
 
 	/**
@@ -99,57 +111,45 @@ public class PeerController {
 	 *
 	 * @param peerInfo
 	 */
-	private void makeConnection(PeerInfo peerInfo) {
+	private void makeConnection(PeerInfo peerInfo) throws IOException {
 		String address = peerInfo.getAddress();
 		int port = peerInfo.getPort();
 
-		try {
-			// System.out.println(LOGGER_PREFIX + " Connection peer " + peerInfo.getPeerID()
-			// + " on " + neighborPeerHost + " port: " + neighborPortNumber);
-			Socket socketTmp = new Socket(address, port);
-			// System.out.println(LOGGER_PREFIX + " Connected to peer " +
-			// peerInfo.getPeerID() + " on " + neighborPeerHost + " port: " +
-			// neighborPortNumber);
+		Socket neighborPeer = new Socket(address, port);
+		PeerHandler peerHandlerTmp = PeerHandler.getNewInstance(neighborPeer, this);
 
-			PeerHandler peerHandlerTmp = PeerHandler.getNewInstance(socketTmp, this);
-			peerHandlerTmp.setPeerId(peerInfo.getPeerId());
-			peerHandlers.add(peerHandlerTmp);
+		peerHandlerTmp.setPeerId(peerInfo.getPeerId());
+		peerHandlers.add(peerHandlerTmp);
 
-			new Thread(peerHandlerTmp).start();
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		new Thread(peerHandlerTmp).start();
 	}
 
-	/**
-	 * init server data
-	 * 
-	 * @return
-	 */
-	private boolean init() {
-		peerInfoPropertyUtil = PeerInfoHelper.getInstance(); // get log instance
-		// init pieceManager
-		if (!PeerInfoHelper.getInstance().getPeerInfoMap().get(peerId).isFileExist()) {
-			pieceManager = PieceManager.getInstance(false, peerId);
-		} else {
-			pieceManager = PieceManager.getInstance(true, peerId);
-		}
+	private void configPieceManager(boolean isFileExists) {
+		this.pieceManager = PieceManager.returnSingletonInstance(isFileExists, peerId);
+	}
 
+	private boolean configControler() {
+		peerInfoHelperObj = PeerInfoHelper.returnSingletonInstance(); // get log instance
+		PeerInfo currPeer = peerInfoHelperObj.getPeerObjectByKey(peerId);
+		boolean isFileExists = currPeer != null && currPeer.isFileExist();
+		this.peerHandlers = new ArrayList<PeerHandler>();
+
+		// configure piece manager based on whether the peer has the target file or not
+		configPieceManager(isFileExists);
 		if (pieceManager == null) {
 			return false;
 		}
 
-		if ((logger = LogHelper.init(peerId)) == null) {
-			System.out.println("Unable to Initialize logger object");
+		// configure logger instance
+		logger = new LogHelper(peerId);
+		if (!logger.isLoggerInitialized()) {
 			return false;
 		}
 
-		peerHandlers = new ArrayList<>();
+		// configure peer server
+		peerServer = PeerServer.returnSingletonInstance(peerId, this);
 
-		// init peerServer
-		peerServer = PeerServer.getInstance(peerId, this);
-
+		// configuration successful
 		return true;
 	}
 
@@ -160,9 +160,9 @@ public class PeerController {
 		if (!isConnection() || !peerServer.getServerStatus()) {
 			return;
 		}
-		// System.out.println("peerInfoPropertyUtil.getPeerInfoMap().size()="+peerInfoPropertyUtil.getPeerInfoMap().size());
+		// System.out.println("peerInfoHelperObj.getPeerInfoMap().size()="+peerInfoHelperObj.getPeerInfoMap().size());
 		// System.out.println("peerCompleteMap.size()="+peerCompleteMap.size());
-		if (peerInfoPropertyUtil.getPeerInfoMap().size() == peerCompleteMap.size()) {
+		if (peerInfoHelperObj.getPeerInfoMap().size() == peerCompleteMap.size()) {
 			shutdown();
 		}
 	}
@@ -173,7 +173,7 @@ public class PeerController {
 	public void shutdown() {
 		chokeUnchokeManager.destroy();
 		optimisticUnchokeManager.destroy();
-		logger.close();
+		logger.destroy();
 		pieceManager.close();
 		System.exit(0);
 	}
@@ -280,7 +280,7 @@ public class PeerController {
 		Peer2PeerMessage unChokeMessage = Peer2PeerMessage.create();
 		unChokeMessage.setMessageType(Constants.TYPE_UNCHOKE_MESSAGE);
 
-		logger.info("Peer [" + peerId + "] has the optimistically unchoked neighbor [" + peerToBeUnChoked + "]");
+		logger.logMessage("Peer [" + peerId + "] has the optimistically unchoked neighbor [" + peerToBeUnChoked + "]");
 		for (int i = 0, peerHandlersSize = peerHandlers.size(); i < peerHandlersSize; i++) {
 			PeerHandler peerHandler = peerHandlers.get(i);
 			if (!peerHandler.getPeerId().equals(peerToBeUnChoked)) {
@@ -303,7 +303,7 @@ public class PeerController {
 	 */
 	public synchronized void insertPiece(Peer2PeerMessage pieceMessage, String sourcePeerID) {
 		pieceManager.write(pieceMessage.getIndex(), pieceMessage.getData());
-		logger.info("Peer [" + instance.getPeerId() + "] has downloaded the piece [" + pieceMessage.getIndex()
+		logger.logMessage("Peer [" + instance.getPeerId() + "] has downloaded the piece [" + pieceMessage.getIndex()
 				+ "] from [" + sourcePeerID + "]. Now the number of pieces it has is "
 				+ (pieceManager.getBitField().getNoOfPieces()));
 	}
@@ -373,7 +373,7 @@ public class PeerController {
 	 * @return
 	 */
 	public int getMaxNewConnectionsCount() {
-		HashMap<String, PeerInfo> neighborPeerMap = peerInfoPropertyUtil.getPeerInfoMap();
+		HashMap<String, PeerInfo> neighborPeerMap = peerInfoHelperObj.getPeerInfoMap();
 		Set<String> peerIDList = neighborPeerMap.keySet();
 
 		int count = 0;

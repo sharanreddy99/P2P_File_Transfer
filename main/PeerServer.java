@@ -28,14 +28,14 @@ public class PeerServer implements Runnable {
 	}
 
 	/**
-	 * getInstance: returns the peerServer instance
+	 * returns the peerServer instance
 	 * 
 	 * @param peerID
 	 * @param controller
 	 * @return
 	 */
 
-	public static PeerServer getInstance(String peerID, PeerController controller) {
+	public static PeerServer returnSingletonInstance(String peerID, PeerController controller) {
 		if (instance == null) {
 			instance = new PeerServer(peerID, controller);
 			if (instance.isPeerConfigAvailable(controller) == false) {
@@ -47,19 +47,19 @@ public class PeerServer implements Runnable {
 	}
 
 	/**
-	 * isPeerConfigAvailable: checks if the peer config instance is available (which
-	 * stores the information of each peer from the config file)
+	 * checks if the peer config instance is available (which
+	 * stores the logMessage(rmation of each peer from the config file)
 	 * 
 	 * @param controller
 	 * @return boolean
 	 */
 	public boolean isPeerConfigAvailable(PeerController controller) {
-		peerConfigReader = PeerInfoHelper.getInstance();
+		peerConfigReader = PeerInfoHelper.returnSingletonInstance();
 		return peerConfigReader != null;
 	}
 
 	/**
-	 * getServerStatus: returns the server status
+	 * returns the server status
 	 * 
 	 * @param controller
 	 * @return boolean
@@ -69,10 +69,10 @@ public class PeerServer implements Runnable {
 	}
 
 	/**
-	 * getServerStatus: sets the server status
+	 * sets the server status
 	 * 
 	 * @param controller
-	 * @return boolean
+	 * @return none
 	 */
 	public synchronized void setServerStatus(boolean serverStatus) {
 		this.serverStatus = serverStatus;

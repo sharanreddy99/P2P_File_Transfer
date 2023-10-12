@@ -31,7 +31,7 @@ public class Constants {
 	/* handshake header */
 	public static final String HANDSHAKE_HEADER_STRING = "P2PFILESHARINGPROJ";
 
-	/* config info */
+	/* config logMessage( */
 	public static final String LOGGER_NAME = "logger.name";
 	public static final String CONFIGURATION_FILE = "Common.cfg";
 	public static final String PEER_INFO_FILE = "PeerInfo.cfg";

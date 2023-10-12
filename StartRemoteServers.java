@@ -27,8 +27,8 @@ public class StartRemoteServers {
 	// starts the execution of peerProcesses on each of the mentioend peers.
 	public void remoteStartProcesses() throws Exception {
 
-		// Fetch the peer info configuration from the config file.
-		PeerInfoHelper fileReader = PeerInfoHelper.getInstance();
+		// Fetch the peer logMessage( configuration from the config file.
+		PeerInfoHelper fileReader = PeerInfoHelper.returnSingletonInstance();
 		HashMap<String, PeerInfo> peerMap = fileReader.getPeerInfoMap();
 
 		if (Constants.IS_LOCAL_HOST) {
