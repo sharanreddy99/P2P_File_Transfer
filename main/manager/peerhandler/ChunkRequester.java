@@ -6,7 +6,7 @@ import java.util.concurrent.BlockingQueue;
 
 import main.PeerController;
 import main.constants.Constants;
-import main.helper.CommonPropertyUtil;
+import main.helper.CommonConfigHelper;
 import main.manager.filehandler.BitFieldHandler;
 import main.messageTypes.Peer2PeerMessage;
 
@@ -57,9 +57,9 @@ public class ChunkRequester implements Runnable {
 	 */
 	private boolean init() {
 		messageQueue = new ArrayBlockingQueue<>(Constants.SENDER_QUEUE_SIZE);
-		int pieceSize = Integer.parseInt(CommonPropertyUtil.getProperty("PieceSize"));
+		int pieceSize = Integer.parseInt(CommonConfigHelper.getConfig("PieceSize"));
 		int numOfPieces = (int) Math
-				.ceil(Integer.parseInt(CommonPropertyUtil.getProperty("FileSize")) / (pieceSize * 1.0));
+				.ceil(Integer.parseInt(CommonConfigHelper.getConfig("FileSize")) / (pieceSize * 1.0));
 		neighborPeerBitFieldhandler = new BitFieldHandler(numOfPieces);
 
 		return true;

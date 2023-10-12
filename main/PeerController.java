@@ -10,7 +10,7 @@ import java.util.Set;
 
 import main.constants.Constants;
 import main.helper.ChokeUnchokePeerHelper;
-import main.helper.CommonPropertyUtil;
+import main.helper.CommonConfigHelper;
 import main.helper.LogHelper;
 import main.helper.OptimisticUnchokePeerHelper;
 import main.helper.PeerInfoHelper;
@@ -72,7 +72,7 @@ public class PeerController {
 		chokeUnchokeManager = ChokeUnchokePeerHelper.returnSingletonInstance(this);
 		if (chokeUnchokeManager != null) {
 			int chokeUnchokeInterval = Integer
-					.parseInt(CommonPropertyUtil.getProperty(Constants.CHOKE_UNCHOKE_INTERVAL));
+					.parseInt(CommonConfigHelper.getConfig(Constants.CHOKE_UNCHOKE_INTERVAL));
 			chokeUnchokeManager.start(0, chokeUnchokeInterval);
 
 		}
@@ -80,7 +80,7 @@ public class PeerController {
 		optimisticUnchokeManager = OptimisticUnchokePeerHelper.returnSingletonInstance(this);
 		if (optimisticUnchokeManager != null) {
 			int optimisticUnchokeInterval = Integer
-					.parseInt(CommonPropertyUtil.getProperty(Constants.OPTIMISTIC_UNCHOKE_INTERVAL));
+					.parseInt(CommonConfigHelper.getConfig(Constants.OPTIMISTIC_UNCHOKE_INTERVAL));
 			optimisticUnchokeManager.start(0, optimisticUnchokeInterval);
 		}
 	}

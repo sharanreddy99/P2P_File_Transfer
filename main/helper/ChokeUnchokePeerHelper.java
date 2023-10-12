@@ -53,8 +53,8 @@ public class ChokeUnchokePeerHelper implements Runnable {
 		HashMap<String, Double> peerSpeedMap = controller.getDownloadRates();
 
 		int preferredNeighbors = 0;
-		if (CommonPropertyUtil.getProperty("NumberOfPreferredNeighbors") != null) {
-			preferredNeighbors = Integer.parseInt(CommonPropertyUtil.getProperty("NumberOfPreferredNeighbors"));
+		if (CommonConfigHelper.getConfig("NumberOfPreferredNeighbors") != null) {
+			preferredNeighbors = Integer.parseInt(CommonConfigHelper.getConfig("NumberOfPreferredNeighbors"));
 		}
 
 		// If we lesser peers than the actual peers count, then we have to pick the k

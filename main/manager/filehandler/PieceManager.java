@@ -5,7 +5,7 @@ import java.io.FileInputStream;
 import java.io.RandomAccessFile;
 
 import main.constants.Constants;
-import main.helper.CommonPropertyUtil;
+import main.helper.CommonConfigHelper;
 import main.messageTypes.Piece;
 
 /**
@@ -48,16 +48,16 @@ public class PieceManager {
 	 */
 	public boolean init(boolean isFileExists, String peerID) {
 		// get config logMessage(: PieceSize
-		if (CommonPropertyUtil.getProperty("PieceSize") != null)
-			size = Integer.parseInt(CommonPropertyUtil.getProperty("PieceSize"));
+		if (CommonConfigHelper.getConfig("PieceSize") != null)
+			size = Integer.parseInt(CommonConfigHelper.getConfig("PieceSize"));
 		else {
 			// System.err.println("Piece Size not in Properties file. Invalid Properties
 			// File!!!");
 		}
 
 		// get config logMessage(: FileSize
-		if (CommonPropertyUtil.getProperty("FileSize") != null) {
-			numOfPieces = (int) Math.ceil(Integer.parseInt(CommonPropertyUtil.getProperty("FileSize")) / (size * 1.0));
+		if (CommonConfigHelper.getConfig("FileSize") != null) {
+			numOfPieces = (int) Math.ceil(Integer.parseInt(CommonConfigHelper.getConfig("FileSize")) / (size * 1.0));
 		}
 
 		try {
@@ -65,7 +65,7 @@ public class PieceManager {
 			if (isFileExists) {
 				bitField.setBitFieldOnForAllIndexes();
 			}
-			String outputFileName = CommonPropertyUtil.getProperty("FileName");
+			String outputFileName = CommonConfigHelper.getConfig("FileName");
 
 			// String directoryName = "peer_" + peerID;
 			String directoryName = peerID;
@@ -77,7 +77,7 @@ public class PieceManager {
 
 			outputFileName = directory.getAbsolutePath() + "/" + outputFileName;
 			outStream = new RandomAccessFile(outputFileName, "rw");
-			outStream.setLength(Integer.parseInt(CommonPropertyUtil.getProperty(Constants.FILE_SIZE)));
+			outStream.setLength(Integer.parseInt(CommonConfigHelper.getConfig(Constants.FILE_SIZE)));
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();

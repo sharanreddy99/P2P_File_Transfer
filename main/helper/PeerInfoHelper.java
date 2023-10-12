@@ -36,8 +36,7 @@ public class PeerInfoHelper {
 	}
 
 	/**
-	 * This function returns a singleton peerInfo helper instance which
-	 * has the all the peer info extracted from the config file.
+	 * This function extracts config info from the mentioned peer config file
 	 * 
 	 * @return boolean indicating whether the extraction of peer info was successful
 	 *         or not
@@ -58,7 +57,8 @@ public class PeerInfoHelper {
 			br.close();
 			fir.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.printf("Exception occured when extracting info from the common config file. Message: %s",
+					e.getMessage());
 			return false;
 		}
 
