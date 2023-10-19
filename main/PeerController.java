@@ -9,10 +9,10 @@ import java.util.Map;
 import java.util.Set;
 
 import main.constants.Constants;
+import main.handlers.filehandler.PieceManager;
+import main.handlers.peerhandler.PeerHandler;
 import main.helper.LogHelper;
 import main.helper.PeerInfoHelper;
-import main.manager.filehandler.PieceManager;
-import main.manager.peerhandler.PeerHandler;
 import main.messageTypes.PeerInfo;
 
 /**
