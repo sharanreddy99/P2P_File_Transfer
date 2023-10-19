@@ -93,7 +93,7 @@ public class PeerServer implements Runnable {
 				Socket incomingSocketConn = serverSocket.accept();
 
 				// Create a peer handler instnace
-				PeerHandler peerHandler = PeerHandler.getNewInstance(incomingSocketConn, controller);
+				PeerHandler peerHandler = PeerHandler.createNewInstance(incomingSocketConn, controller);
 
 				// Register the peer handler with the controller
 				controller.addPeerHandler(peerHandler);

@@ -46,6 +46,7 @@ public class PieceManager {
 	 * @param peerID
 	 * @return
 	 */
+	//Required
 	public boolean init(boolean isFileExists, String peerID) {
 		// get config logMessage(: PieceSize
 		if (CommonConfigHelper.getConfig("PieceSize") != null)
@@ -112,104 +113,104 @@ public class PieceManager {
 	 * @param index
 	 * @return
 	 */
-	synchronized public Piece get(int index) {
-		Piece newPiece = new Piece(size);
-		if (bitField.getBitField(index)) {
-			byte[] readBytes = new byte[size];
-			int newSize = 0;
-			// have to read this piece from my own output file.
-			try {
-				outStream.seek(index * size);
-				newSize = outStream.read(readBytes);
-			} catch (Exception e) {
-				e.printStackTrace();
-				return null;
-			}
-			if (newSize != size) {
-				byte[] newReadBytes = new byte[newSize];
-				if (newSize >= 0) {
-					System.arraycopy(readBytes, 0, newReadBytes, 0, newSize);
-				}
-				newPiece.setByteData(newReadBytes);
-			} else {
-				newPiece.setByteData(readBytes);
-			}
-			return newPiece;
-		} else {
-			return null;
-		}
-	}
+	// synchronized public Piece get(int index) {
+	// 	Piece newPiece = new Piece(size);
+	// 	if (bitField.getBitField(index)) {
+	// 		byte[] readBytes = new byte[size];
+	// 		int newSize = 0;
+	// 		// have to read this piece from my own output file.
+	// 		try {
+	// 			outStream.seek(index * size);
+	// 			newSize = outStream.read(readBytes);
+	// 		} catch (Exception e) {
+	// 			e.printStackTrace();
+	// 			return null;
+	// 		}
+	// 		if (newSize != size) {
+	// 			byte[] newReadBytes = new byte[newSize];
+	// 			if (newSize >= 0) {
+	// 				System.arraycopy(readBytes, 0, newReadBytes, 0, newSize);
+	// 			}
+	// 			newPiece.setByteData(newReadBytes);
+	// 		} else {
+	// 			newPiece.setByteData(readBytes);
+	// 		}
+	// 		return newPiece;
+	// 	} else {
+	// 		return null;
+	// 	}
+	// }
 
-	/**
-	 * write piece
-	 * 
-	 * @param index
-	 * @param piece
-	 */
-	synchronized public void write(int index, Piece piece) {
-		if (!bitField.getBitField(index)) {
-			try {
-				// have to write this piece in Piece object array
-				outStream.seek(index * size);
-				outStream.write(piece.getByteData());
-				bitField.setBitField(index, true);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
+	// /**
+	//  * write piece
+	//  * 
+	//  * @param index
+	//  * @param piece
+	//  */
+	// synchronized public void write(int index, Piece piece) {
+	// 	if (!bitField.getBitField(index)) {
+	// 		try {
+	// 			// have to write this piece in Piece object array
+	// 			outStream.seek(index * size);
+	// 			outStream.write(piece.getByteData());
+	// 			bitField.setBitField(index, true);
+	// 		} catch (Exception e) {
+	// 			e.printStackTrace();
+	// 		}
+	// 	}
 
-	}
+	// }
 
-	/**
-	 * the missing piece number.
-	 *
-	 * @return
-	 */
-	synchronized public int[] getMissingPieceNumberArray() {
-		int count = 0, missSize = 0;
-		// parse missing indexe count
-		while (true) {
-			if (count >= bitField.getSize())
-				break;
-			if (!bitField.getBitField(count)) {
-				missSize++;
-			}
-			count++;
-		}
+	// /**
+	//  * the missing piece number.
+	//  *
+	//  * @return
+	//  */
+	// synchronized public int[] getMissingPieceNumberArray() {
+	// 	int count = 0, missSize = 0;
+	// 	// parse missing indexe count
+	// 	while (true) {
+	// 		if (count >= bitField.getSize())
+	// 			break;
+	// 		if (!bitField.getBitField(count)) {
+	// 			missSize++;
+	// 		}
+	// 		count++;
+	// 	}
 
-		// creating an array of count size
-		int[] missData = new int[missSize];
-		count = 0;
-		missSize = 0;
-		while (true) {
-			if (count >= bitField.getSize())
-				break;
+	// 	// creating an array of count size
+	// 	int[] missData = new int[missSize];
+	// 	count = 0;
+	// 	missSize = 0;
+	// 	while (true) {
+	// 		if (count >= bitField.getSize())
+	// 			break;
 
-			if (!bitField.getBitField(count)) {
-				missData[missSize++] = count;
-			}
-			count++;
-		}
-		bitField.printVector();
+	// 		if (!bitField.getBitField(count)) {
+	// 			missData[missSize++] = count;
+	// 		}
+	// 		count++;
+	// 	}
+	// 	bitField.printVector();
 
-		return missData;
-	}
+	// 	return missData;
+	// }
 
-	/**
-	 * check file download completed
-	 * 
-	 * @return
-	 */
-	public synchronized boolean hasDownloadFileComplete() {
-		return bitField.isFileDownloadComplete();
-	}
+	// /**
+	//  * check file download completed
+	//  * 
+	//  * @return
+	//  */
+	// public synchronized boolean hasDownloadFileComplete() {
+	// 	return bitField.isFileDownloadComplete();
+	// }
 
-	/**
-	 * getBitField
-	 * 
-	 * @return
-	 */
-	public BitFieldHandler getBitField() {
-		return bitField;
-	}
+	// /**
+	//  * getBitField
+	//  * 
+	//  * @return
+	//  */
+	// public BitFieldHandler getBitField() {
+	// 	return bitField;
+	// }
 }

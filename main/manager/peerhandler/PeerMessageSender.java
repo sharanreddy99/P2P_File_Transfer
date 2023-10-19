@@ -21,6 +21,7 @@ public class PeerMessageSender implements Runnable {
 	 * @param outputStream
 	 * @return
 	 */
+	// Required Change
 	public static PeerMessageSender getNewInstance(ObjectOutputStream outputStream) {
 		PeerMessageSender peerMessageSender = new PeerMessageSender();
 		if (!peerMessageSender.init()) {
@@ -32,6 +33,7 @@ public class PeerMessageSender implements Runnable {
 		return peerMessageSender;
 	}
 
+	// Required
 	public void destroy() {
 		if (messageQueue != null && messageQueue.size() != 0) {
 			messageQueue.clear();
@@ -39,33 +41,13 @@ public class PeerMessageSender implements Runnable {
 		messageQueue = null;
 	}
 
+	// Required change
 	private boolean init() {
 		messageQueue = new ArrayBlockingQueue<>(Constants.SENDER_QUEUE_SIZE);
 		return true;
 	}
 
-	public void printMessageDetails(PeerMessage message) {
-		// if(message.getType() != Const.TYPE_HAVE_MESSAGE && message.getType() !=
-		// Const.TYPE_NOT_INTERESTED_MESSAGE && message.getType() !=
-		// Const.TYPE_INTERESTED_MESSAGE){
-		// if(message.getType() == Const.TYPE_PIECE_MESSAGE || message.getType() ==
-		// Const.TYPE_REQUEST_MESSAGE){
-		//// System.out.println(LOGGER_PREFIX+": Sent
-		// message:["+message.getMessageNumber()+"]:"+Const.getMessageName(message.getType())
-		// +" Piece Number : "+((Peer2PeerMessage)message).getPieceIndex());
-		//// System.out.println(LOGGER_PREFIX+":["+handler.getPeerId()+"]"+": Sent
-		// message:["+message.getMessageNumber()+"]:"+Const.getMessageName(message.getType())
-		// +" Piece Number : "+((Peer2PeerMessage)message).getPieceIndex());
-		// }else{
-		//// System.out.println(LOGGER_PREFIX+": Sent
-		// message:["+message.getMessageNumber()+"]:"+Const.getMessageName(message.getType())
-		// );
-		//// System.out.println(LOGGER_PREFIX+":["+handler.getPeerId()+"]"+": Sent
-		// message:["+message.getMessageNumber()+"]:"+Const.getMessageName(message.getType()));
-		// }
-		// }
-	}
-
+	// Required change
 	public void run() {
 		if (messageQueue == null) {
 			throw new IllegalStateException(LOGGER_PREFIX
@@ -79,7 +61,6 @@ public class PeerMessageSender implements Runnable {
 				PeerMessage message = messageQueue.take();
 				outputStream.writeUnshared(message);
 				outputStream.flush();
-				printMessageDetails(message);
 			} catch (Exception e) {
 				e.printStackTrace();
 				break;
@@ -93,6 +74,7 @@ public class PeerMessageSender implements Runnable {
 	 * @param message
 	 * @throws InterruptedException
 	 */
+	// Required
 	public void sendMessage(PeerMessage message) throws InterruptedException {
 		if (messageQueue != null) {
 			messageQueue.put(message);
@@ -101,6 +83,7 @@ public class PeerMessageSender implements Runnable {
 		}
 	}
 
+	// Required
 	public void shutdown() {
 		shutDown = true;
 	}

@@ -44,7 +44,7 @@ public class PeerInfoHelper {
 	public boolean configPeerInfo() {
 		peerInfoMap = new LinkedHashMap<>();
 		try {
-			FileInputStream fir = new FileInputStream(Constants.PEER_INFO_FILE);
+			FileInputStream fir = new FileInputStream("PeerInfo.cfg");
 			BufferedReader br = new BufferedReader(new InputStreamReader(fir));
 
 			String row;
@@ -52,6 +52,7 @@ public class PeerInfoHelper {
 				row = row.trim();
 				String[] tokens = row.split(" ");
 				peerInfoMap.put(tokens[0], new PeerInfo(tokens[0], tokens[1], tokens[2], tokens[3]));
+				System.out.println(tokens[0]+" "+tokens[1]+" "+tokens[2]+" "+tokens[3]);
 			}
 
 			br.close();

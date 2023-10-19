@@ -1,15 +1,10 @@
 import main.PeerController;
-
-/**
- * test
+/*
+ * Start PeerProcess, peer id given in common.cfg file is given as command line argument
  */
 public class PeerProcess {
 	public static void main(String args[]) {
-		String peerID = args[0];
-
-		PeerController controller = PeerController.returnSingletonInstance(peerID);
+		PeerController controller = PeerController.returnSingletonInstance(args[0]);
 		controller.beginPeerProcess();
-
 	}
-
 }
