@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 import main.constants.Constants;
-import main.messageTypes.PeerInfo;
+import main.messageTypes.Peer;
 
 /**
  * This class extracts information related to the common configuration file

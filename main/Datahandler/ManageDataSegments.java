@@ -1,4 +1,4 @@
-package main.handlers.filehandler;
+package main.Datahandler;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -6,12 +6,11 @@ import java.io.RandomAccessFile;
 
 import main.constants.Constants;
 import main.helper.CommonConfigHelper;
-import main.messageTypes.Piece;
 
 /**
  * Piece Manager
  */
-public class PieceManager {
+public class ManageDataSegments {
 
 	int numOfPieces; // num of piece
 	int size; // piece size
@@ -19,8 +18,8 @@ public class PieceManager {
 	private RandomAccessFile outStream;
 	private FileInputStream inStream;
 
-	private static BitFieldHandler bitField;
-	private static volatile PieceManager instance;
+	private static ManageBitFields bitField;
+	private static volatile ManageDataSegments instance;
 
 	/**
 	 * get instance
@@ -29,9 +28,9 @@ public class PieceManager {
 	 * @param peerID
 	 * @return
 	 */
-	public synchronized static PieceManager returnSingletonInstance(boolean isFileExists, String peerID) {
+	public synchronized static ManageDataSegments returnSingletonInstance(boolean isFileExists, String peerID) {
 		if (instance == null) {
-			instance = new PieceManager();
+			instance = new ManageDataSegments();
 			if (!instance.init(isFileExists, peerID)) {
 				instance = null;
 			}
@@ -62,7 +61,7 @@ public class PieceManager {
 		}
 
 		try {
-			bitField = new BitFieldHandler(numOfPieces);
+			bitField = new ManageBitFields(numOfPieces);
 			if (isFileExists) {
 				bitField.setBitFieldOnForAllIndexes();
 			}

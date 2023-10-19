@@ -1,4 +1,4 @@
-package main.handlers.filehandler;
+package main.Datahandler;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -6,7 +6,7 @@ import java.util.Arrays;
 /**
  * Bit handler
  */
-public class BitFieldHandler implements Serializable {
+public class ManageBitFields implements Serializable {
 
 	private final boolean[] bitfieldVector; // bitfield vector
 	private final int size;
@@ -16,7 +16,7 @@ public class BitFieldHandler implements Serializable {
 	 * 
 	 * @param numOfPieces the num of pieces
 	 */
-	public BitFieldHandler(int numOfPieces) {
+	public ManageBitFields(int numOfPieces) {
 		bitfieldVector = new boolean[numOfPieces];
 		size = numOfPieces;
 		for (int i = 0; i < size; i++) {

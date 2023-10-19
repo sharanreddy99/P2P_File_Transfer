@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 import main.constants.Constants;
-import main.messageTypes.PeerInfo;
+import main.messageTypes.Peer;
 
 /**
  * This class extracts information related to all the peers from the peer config
@@ -16,7 +16,7 @@ import main.messageTypes.PeerInfo;
  */
 public class PeerInfoHelper {
 
-	private LinkedHashMap<String, PeerInfo> peerInfoMap = null;
+	private LinkedHashMap<String, Peer> peerInfoMap = null;
 	private static PeerInfoHelper instance = null;
 
 	/**
@@ -51,7 +51,7 @@ public class PeerInfoHelper {
 			for (; (row = br.readLine()) != null;) {
 				row = row.trim();
 				String[] tokens = row.split(" ");
-				peerInfoMap.put(tokens[0], new PeerInfo(tokens[0], tokens[1], tokens[2], tokens[3]));
+				peerInfoMap.put(tokens[0], new Peer(tokens[0], tokens[1], tokens[2], tokens[3]));
 				System.out.println(tokens[0]+" "+tokens[1]+" "+tokens[2]+" "+tokens[3]);
 			}
 
@@ -71,7 +71,7 @@ public class PeerInfoHelper {
 	 * 
 	 * @return a map of peerID, peerInfo
 	 */
-	public HashMap<String, PeerInfo> getPeerInfoMap() {
+	public HashMap<String, Peer> getPeerInfoMap() {
 		return peerInfoMap;
 	}
 
@@ -80,7 +80,7 @@ public class PeerInfoHelper {
 	 * 
 	 * @return a single peer object
 	 */
-	public PeerInfo getPeerObjectByKey(String key) {
+	public Peer getPeerObjectByKey(String key) {
 		return this.peerInfoMap.get(key);
 	}
 }

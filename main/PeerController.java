@@ -10,10 +10,10 @@ import java.util.Set;
 
 import main.constants.Constants;
 import main.connections.ConnectionManager;
-import main.handlers.filehandler.PieceManager;
+import main.Datahandler.ManageDataSegments;
 import main.helper.LogHelper;
 import main.helper.PeerInfoHelper;
-import main.messageTypes.PeerInfo;
+import main.messageTypes.Peer;
 
 /**
  * Controller
@@ -21,7 +21,7 @@ import main.messageTypes.PeerInfo;
 public class PeerController {
 
 	private ArrayList<ConnectionManager> connectionManagers;
-	private PieceManager pieceManager;
+	private ManageDataSegments dataSegmentManager;
 	private PeerInfoHelper peerInfoHelperObj;
 	private PeerServer peerServer;
 	private LogHelper logger;
@@ -65,11 +65,11 @@ public class PeerController {
 		new Thread(peerServer).start();
 
 		//Now connect to all previously started peers
-		HashMap<String, PeerInfo> peerInfoMap = peerInfoHelperObj.getPeerInfoMap();
+		HashMap<String, Peer> peerInfoMap = peerInfoHelperObj.getPeerInfoMap();
 
 		try {
 			int currentPeerId = Integer.parseInt(peerId);
-			for (Map.Entry<String, PeerInfo> set : peerInfoMap.entrySet()) {
+			for (Map.Entry<String, Peer> set : peerInfoMap.entrySet()) {
 				if (Integer.parseInt(set.getKey()) < currentPeerId) {
 					establishConnection(peerInfoMap.get(set.getKey()));
 				}
@@ -88,7 +88,7 @@ public class PeerController {
 	 * @param peerInfo
 	 */
 	// Required Change also
-	private void establishConnection(PeerInfo peerInfo) throws IOException {
+	private void establishConnection(Peer peerInfo) throws IOException {
 		Socket neighborPeer = new Socket(peerInfo.getAddress(), peerInfo.getPort());
 		ConnectionManager getNewPeerHandler = ConnectionManager.createNewInstance(neighborPeer, this);
 
@@ -100,19 +100,19 @@ public class PeerController {
 
 	//Required
 	private void configPieceManager(boolean isFileExists) {
-		this.pieceManager = PieceManager.returnSingletonInstance(isFileExists, peerId);
+		this.dataSegmentManager = ManageDataSegments.returnSingletonInstance(isFileExists, peerId);
 	}
 
 	//Required
 	private boolean configControler() {
 		peerInfoHelperObj = PeerInfoHelper.returnSingletonInstance();
-		PeerInfo currPeer = peerInfoHelperObj.getPeerObjectByKey(peerId);
+		Peer currPeer = peerInfoHelperObj.getPeerObjectByKey(peerId);
 		boolean isFileExists = currPeer != null && currPeer.isFileExist();
 		this.connectionManagers = new ArrayList<ConnectionManager>();
 
 		// configure piece manager based on whether the peer has the target file or not
 		configPieceManager(isFileExists);
-		if (pieceManager == null) {
+		if (dataSegmentManager == null) {
 			return false;
 		}
 
@@ -152,7 +152,7 @@ public class PeerController {
 	 */
 	// Required Change
 	public int getMaxNewConnectionsCount() {
-		HashMap<String, PeerInfo> neighborPeerMap = peerInfoHelperObj.getPeerInfoMap();
+		HashMap<String, Peer> neighborPeerMap = peerInfoHelperObj.getPeerInfoMap();
 		Set<String> peerIDList = neighborPeerMap.keySet();
 
 		int count = 0;

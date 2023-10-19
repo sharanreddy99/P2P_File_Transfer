@@ -15,7 +15,7 @@ import main.messageTypes.*;
 public class ConnectionManager implements Runnable {
 	private PeerController controller; // controller
 	private ObjectInputStream objectInputStream; // neighbor peer input stream
-	private PeerMessageSender peerMessageSender; // peerMessageSender
+	private CommunicateWithPeer peerMessageSender; // peerMessageSender
 	private LogHelper messageLoggerUtil; // log util
 
 	private String peerId; // peer id
@@ -68,7 +68,7 @@ public class ConnectionManager implements Runnable {
 			return false;
 		}
 
-		peerMessageSender = PeerMessageSender.getNewInstance(neighborPeerOutputStream);
+		peerMessageSender = CommunicateWithPeer.getNewInstance(neighborPeerOutputStream);
 		if (peerMessageSender == null) {
 			close();
 			return false;
@@ -114,7 +114,7 @@ public class ConnectionManager implements Runnable {
 					// System.out.println(LOGGER_PREFIX+": "+peerID+": Breaking from while loop");
 					break;
 				}
-				PeerMessage message = (PeerMessage) objectInputStream.readObject();
+				PeerMessageType message = (PeerMessageType) objectInputStream.readObject();
 				// System.out.println(LOGGER_PREFIX+": "+peerID+": RUN : Received
 				// Message:["+message.getMessageNumber()+"]:
 				// "+Const.getMessageName(message.getType()));

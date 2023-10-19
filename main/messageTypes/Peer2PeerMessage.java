@@ -1,15 +1,14 @@
 package main.messageTypes;
 
-import main.manager.filehandler.BitFieldHandler;
-
+import main.Datahandler.*;
 /**
  * Peer2PeerMessage
  */
-public class Peer2PeerMessage implements PeerMessage {
+public class Peer2PeerMessage implements PeerMessageType {
 	private static int COUNT = 0;
 
 	private Piece data;
-	private BitFieldHandler bitFieldHandler = null;
+	private ManageBitFields manageBitFields = null;
 	private int index;
 	private int length;
 
@@ -52,12 +51,12 @@ public class Peer2PeerMessage implements PeerMessage {
 		return data;
 	}
 
-	public BitFieldHandler getBitFieldHandler() {
-		return bitFieldHandler;
+	public ManageBitFields getManageBitFields() {
+		return manageBitFields;
 	}
 
-	public void setBitFieldHandler(BitFieldHandler bitFieldHandler) {
-		this.bitFieldHandler = bitFieldHandler;
+	public void setBitFieldHandler(ManageBitFields manageBitFields) {
+		this.manageBitFields = manageBitFields;
 	}
 
 	public void setData(Piece data) {

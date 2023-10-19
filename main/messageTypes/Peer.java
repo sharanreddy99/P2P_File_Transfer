@@ -3,13 +3,13 @@ package main.messageTypes;
 /**
  * PeerInfo
  */
-public class PeerInfo {
+public class Peer {
 
 	private String ID, address;
 	private int port;
 	private boolean isFilePresent;
 
-	public PeerInfo(String ID, String address, String port, String fileParam) {
+	public Peer(String ID, String address, String port, String fileParam) {
 		this.ID = ID;
 		this.address = address;
 		this.port = Integer.parseInt(port);

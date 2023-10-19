@@ -7,7 +7,7 @@ import java.util.HashMap;
 
 import main.constants.Constants;
 import main.helper.PeerInfoHelper;
-import main.messageTypes.PeerInfo;
+import main.messageTypes.Peer;
 
 /**
  * StartRemoteServers: This class starts the peering processes in each of the
@@ -30,7 +30,7 @@ public class StartRemoteServers {
 
 		// Fetch the peer logMessage( configuration from the config file.
 		PeerInfoHelper fileReader = PeerInfoHelper.returnSingletonInstance();
-		HashMap<String, PeerInfo> peerMap = fileReader.getPeerInfoMap();
+		HashMap<String, Peer> peerMap = fileReader.getPeerInfoMap();
 
 		if (Constants.IS_LOCAL_HOST) {
 			Runtime.getRuntime().exec("make");
@@ -38,7 +38,7 @@ public class StartRemoteServers {
 		}
 
 		for (String key : peerMap.keySet()) {
-			PeerInfo peer = peerMap.get(key);
+			Peer peer = peerMap.get(key);
 
 			// Prepare execution strings.
 			String formatString = (Constants.IS_LOCAL_HOST ? "%s%s"

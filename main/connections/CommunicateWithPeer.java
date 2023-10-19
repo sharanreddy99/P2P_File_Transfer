@@ -5,25 +5,25 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import main.constants.Constants;
-import main.messageTypes.PeerMessage;
+import main.messageTypes.PeerMessageType;
 
-public class PeerMessageSender implements Runnable {
+public class CommunicateWithPeer implements Runnable {
 	/* log */
-	private static final String LOGGER_PREFIX = PeerMessageSender.class.getSimpleName();
+	private static final String LOGGER_PREFIX = CommunicateWithPeer.class.getSimpleName();
 
 	private ObjectOutputStream outputStream = null;
-	private BlockingQueue<PeerMessage> messageQueue;
+	private BlockingQueue<PeerMessageType> messageQueue;
 	private boolean shutDown = false;
 
 	/**
-	 * get new instance of PeerMessageSender
+	 * get new instance of CommunicateWithPeer
 	 * 
 	 * @param outputStream
 	 * @return
 	 */
 	// Required Change
-	public static PeerMessageSender getNewInstance(ObjectOutputStream outputStream) {
-		PeerMessageSender peerMessageSender = new PeerMessageSender();
+	public static CommunicateWithPeer getNewInstance(ObjectOutputStream outputStream) {
+		CommunicateWithPeer peerMessageSender = new CommunicateWithPeer();
 		if (!peerMessageSender.init()) {
 			peerMessageSender.destroy();
 			return null;
@@ -58,7 +58,7 @@ public class PeerMessageSender implements Runnable {
 			if (shutDown)
 				break;
 			try {
-				PeerMessage message = messageQueue.take();
+				PeerMessageType message = messageQueue.take();
 				outputStream.writeUnshared(message);
 				outputStream.flush();
 			} catch (Exception e) {
@@ -75,7 +75,7 @@ public class PeerMessageSender implements Runnable {
 	 * @throws InterruptedException
 	 */
 	// Required
-	public void sendMessage(PeerMessage message) throws InterruptedException {
+	public void sendMessage(PeerMessageType message) throws InterruptedException {
 		if (messageQueue != null) {
 			messageQueue.put(message);
 		} else {

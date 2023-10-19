@@ -2,7 +2,7 @@ package main.messageTypes;
 
 import java.io.Serializable;
 
-public interface PeerMessage extends Serializable {
+public interface PeerMessageType extends Serializable {
 
 	int getType();
 

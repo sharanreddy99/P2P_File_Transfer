@@ -5,7 +5,7 @@ import main.constants.Constants;
 /**
  * HandshakeMessage
  */
-public class HandshakeMessage implements PeerMessage {
+public class HandshakeMessage implements PeerMessageType {
 	private static int COUNT = 0;
 
 	private final int messageNumber;
