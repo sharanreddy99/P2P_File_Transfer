@@ -9,8 +9,8 @@ import java.util.Map;
 import java.util.Set;
 
 import main.constants.Constants;
+import main.connections.ConnectionManager;
 import main.handlers.filehandler.PieceManager;
-import main.handlers.peerhandler.PeerHandler;
 import main.helper.LogHelper;
 import main.helper.PeerInfoHelper;
 import main.messageTypes.PeerInfo;
@@ -20,7 +20,7 @@ import main.messageTypes.PeerInfo;
  */
 public class PeerController {
 
-	private ArrayList<PeerHandler> peerHandlers;
+	private ArrayList<ConnectionManager> connectionManagers;
 	private PieceManager pieceManager;
 	private PeerInfoHelper peerInfoHelperObj;
 	private PeerServer peerServer;
@@ -90,10 +90,10 @@ public class PeerController {
 	// Required Change also
 	private void establishConnection(PeerInfo peerInfo) throws IOException {
 		Socket neighborPeer = new Socket(peerInfo.getAddress(), peerInfo.getPort());
-		PeerHandler getNewPeerHandler = PeerHandler.createNewInstance(neighborPeer, this);
+		ConnectionManager getNewPeerHandler = ConnectionManager.createNewInstance(neighborPeer, this);
 
 		getNewPeerHandler.setPeerId(peerInfo.getPeerId());
-		peerHandlers.add(getNewPeerHandler);
+		connectionManagers.add(getNewPeerHandler);
 
 		new Thread(getNewPeerHandler).start();
 	}
@@ -108,7 +108,7 @@ public class PeerController {
 		peerInfoHelperObj = PeerInfoHelper.returnSingletonInstance();
 		PeerInfo currPeer = peerInfoHelperObj.getPeerObjectByKey(peerId);
 		boolean isFileExists = currPeer != null && currPeer.isFileExist();
-		this.peerHandlers = new ArrayList<PeerHandler>();
+		this.connectionManagers = new ArrayList<ConnectionManager>();
 
 		// configure piece manager based on whether the peer has the target file or not
 		configPieceManager(isFileExists);
@@ -139,12 +139,12 @@ public class PeerController {
 	}
 
 	/**
-	 * register peerHandler into peerHandlers list
+	 * register peerHandler into connectionManagers list
 	 * 
-	 * @param peerHandler
+	 * @param connectionManager
 	 */
-	public synchronized void addPeerHandler(PeerHandler peerHandler) {
-		peerHandlers.add(peerHandler);
+	public synchronized void addPeerHandler(ConnectionManager connectionManager) {
+		connectionManagers.add(connectionManager);
 	}
 	/**
 	 *

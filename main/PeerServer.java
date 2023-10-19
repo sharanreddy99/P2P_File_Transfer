@@ -6,7 +6,7 @@ import java.net.Socket;
 import java.util.HashMap;
 
 import main.helper.PeerInfoHelper;
-import main.manager.peerhandler.PeerHandler;
+import main.connections.ConnectionManager;
 import main.messageTypes.PeerInfo;
 
 /**
@@ -93,7 +93,7 @@ public class PeerServer implements Runnable {
 				Socket incomingSocketConn = serverSocket.accept();
 
 				// Create a peer handler instnace
-				PeerHandler peerHandler = PeerHandler.createNewInstance(incomingSocketConn, controller);
+				ConnectionManager peerHandler = ConnectionManager.createNewInstance(incomingSocketConn, controller);
 
 				// Register the peer handler with the controller
 				controller.addPeerHandler(peerHandler);

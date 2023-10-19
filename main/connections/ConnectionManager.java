@@ -1,21 +1,18 @@
-package main.manager.peerhandler;
+package main.connections;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 
 import main.PeerController;
 import main.constants.Constants;
 import main.helper.LogHelper;
-import main.messageTypes.HandshakeMessage;
-import main.messageTypes.PeerMessage;
+import main.messageTypes.*;
 
 /**
  * Peer Handler
  */
-public class PeerHandler implements Runnable {
+public class ConnectionManager implements Runnable {
 	private PeerController controller; // controller
 	private ObjectInputStream objectInputStream; // neighbor peer input stream
 	private PeerMessageSender peerMessageSender; // peerMessageSender
@@ -27,22 +24,22 @@ public class PeerHandler implements Runnable {
 	private boolean isChunkStarted = false;
 	private boolean isHandShakeSent = false;
 	/**
-	 * get new instance of PeerHandler
+	 * get new instance of ConnectionManager
 	 * 
 	 * @param socket
 	 * @param controller
 	 * @return
 	 */
 	// Required change also
-	synchronized public static PeerHandler createNewInstance(Socket socket, PeerController controller) {
-		PeerHandler peerHandler = new PeerHandler();
-		peerHandler.neighborSocket = socket;
-		peerHandler.controller = controller;
-		if (!peerHandler.init(controller)) {
-			peerHandler.close();
-			peerHandler = null;
+	synchronized public static ConnectionManager createNewInstance(Socket socket, PeerController controller) {
+		ConnectionManager connectionManager = new ConnectionManager();
+		connectionManager.neighborSocket = socket;
+		connectionManager.controller = controller;
+		if (!connectionManager.init(controller)) {
+			connectionManager.close();
+			connectionManager = null;
 		}
-		return peerHandler;
+		return connectionManager;
 	}
 
 	/**
@@ -56,7 +53,6 @@ public class PeerHandler implements Runnable {
 		if (neighborSocket == null) {
 			return false;
 		}
-		// System.out.println(LOGGER_PREFIX+" Initializing PeerHandler");
 
 		ObjectOutputStream neighborPeerOutputStream;
 		try {

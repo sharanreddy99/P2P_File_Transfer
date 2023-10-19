@@ -1,4 +1,4 @@
-package main.manager.filehandler;
+package main.handlers.filehandler;
 
 import java.io.Serializable;
 import java.util.Arrays;
