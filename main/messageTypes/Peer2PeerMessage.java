@@ -7,7 +7,7 @@ import main.Datahandler.*;
 public class Peer2PeerMessage implements PeerMessageType {
 	private static int COUNT = 0;
 
-	private Piece data;
+	private DataSegment data;
 	private ManageBitFields manageBitFields = null;
 	private int index;
 	private int length;
@@ -47,7 +47,7 @@ public class Peer2PeerMessage implements PeerMessageType {
 		this.index = index;
 	}
 
-	public Piece getData() {
+	public DataSegment getData() {
 		return data;
 	}
 
@@ -59,7 +59,7 @@ public class Peer2PeerMessage implements PeerMessageType {
 		this.manageBitFields = manageBitFields;
 	}
 
-	public void setData(Piece data) {
+	public void setData(DataSegment data) {
 		this.data = data;
 	}
 

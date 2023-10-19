@@ -1,19 +1,21 @@
 package main.connections;
 
-import java.io.ObjectOutputStream;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.io.*;
+import java.util.concurrent.*;
 
-import main.constants.Constants;
-import main.messageTypes.PeerMessageType;
+import main.constants.*;
+import main.messageTypes.*;
 
 public class CommunicateWithPeer implements Runnable {
-	/* log */
-	private static final String LOGGER_PREFIX = CommunicateWithPeer.class.getSimpleName();
+	
+	private ObjectOutputStream objectOutputStream = null;
+	private boolean connectionInactive = false;
 
-	private ObjectOutputStream outputStream = null;
 	private BlockingQueue<PeerMessageType> messageQueue;
-	private boolean shutDown = false;
+
+	public void toggleConnectionInactive() {
+		connectionInactive = !connectionInactive;
+	}
 
 	/**
 	 * get new instance of CommunicateWithPeer
@@ -22,69 +24,77 @@ public class CommunicateWithPeer implements Runnable {
 	 * @return
 	 */
 	// Required Change
-	public static CommunicateWithPeer getNewInstance(ObjectOutputStream outputStream) {
-		CommunicateWithPeer peerMessageSender = new CommunicateWithPeer();
-		if (!peerMessageSender.init()) {
-			peerMessageSender.destroy();
-			return null;
-		}
-
-		peerMessageSender.outputStream = outputStream;
-		return peerMessageSender;
+	public static CommunicateWithPeer createNewInstance(ObjectOutputStream outputStream) {
+		CommunicateWithPeer communicateWithPeer = new CommunicateWithPeer();
+		return !communicateWithPeer.createNewQueue() && communicateWithPeer.removeQueue() 
+			? null 
+			: attachOutputStream (outputStream, communicateWithPeer);
 	}
 
-	// Required
-	public void destroy() {
-		if (messageQueue != null && messageQueue.size() != 0) {
-			messageQueue.clear();
-		}
-		messageQueue = null;
+	public static CommunicateWithPeer attachOutputStream(ObjectOutputStream outputStream, CommunicateWithPeer communicateWithPeer){
+		communicateWithPeer.objectOutputStream = outputStream;
+		return communicateWithPeer;
 	}
 
 	// Required change
-	private boolean init() {
-		messageQueue = new ArrayBlockingQueue<>(Constants.SENDER_QUEUE_SIZE);
+	private boolean createNewQueue() {
+		try{
+			messageQueue = new ArrayBlockingQueue<>(Constants.SENDER_QUEUE_SIZE);
+		}catch(Exception e){
+			return false;
+		}
 		return true;
 	}
 
-	// Required change
+	// Define the thread run function
 	public void run() {
-		if (messageQueue == null) {
-			throw new IllegalStateException(LOGGER_PREFIX
-					+ ": This object is not initialized properly. This might be result of calling deinit() method");
-		}
-
-		while (true) {
-			if (shutDown)
-				break;
+		if (connectionInactive)
+			return;
+		while(messageQueue != null && !connectionInactive){
 			try {
-				PeerMessageType message = messageQueue.take();
-				outputStream.writeUnshared(message);
-				outputStream.flush();
+				PeerMessageType head = messageQueue.take();
+				objectOutputStream.writeUnshared(head);
+				objectOutputStream.flush();
 			} catch (Exception e) {
-				e.printStackTrace();
-				break;
+				return;
 			}
 		}
 	}
 
 	/**
-	 * sendMessage
+	 * communicate message to peer
 	 * 
 	 * @param message
 	 * @throws InterruptedException
 	 */
-	// Required
-	public void sendMessage(PeerMessageType message) throws InterruptedException {
-		if (messageQueue != null) {
+	public void communicateMessageToPeer(PeerMessageType message) throws Exception {
+		if(!checkForMessageQueue(messageQueue)){
+			return;
+		}
+		try{
 			messageQueue.put(message);
-		} else {
-			// throw new IllegalStateException("");
+		}catch(Exception e){
+			e.printStackTrace();
+			throw e;
 		}
 	}
 
-	// Required
-	public void shutdown() {
-		shutDown = true;
+	public static boolean checkForMessageQueue(BlockingQueue<PeerMessageType> messageQueue){
+		return messageQueue != null;
+	}
+
+	public boolean removeQueue() {
+		try{
+			if(messageQueue == null){
+				return true;
+			}
+			else if(messageQueue.size() != 0) {
+				messageQueue.clear();
+				messageQueue = null;
+			}
+			return true;
+		}catch(Exception e){
+			return false;
+		}
 	}
 }

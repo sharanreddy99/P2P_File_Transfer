@@ -5,11 +5,11 @@ import java.io.Serializable;
 /**
  * piece
  */
-public class Piece implements Serializable {
+public class DataSegment implements Serializable {
 	private byte[] byteData;
 	int size;
 
-	public Piece(int size) {
+	public DataSegment(int size) {
 		this.size = size;
 	}
 

@@ -2,191 +2,171 @@ package main.connections;
 
 import java.io.*;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 
 import main.PeerController;
-import main.constants.Constants;
-import main.helper.LogHelper;
+import main.constants.*;
+import main.helper.*;
 import main.messageTypes.*;
-
-/**
- * Peer Handler
- */
 public class ConnectionManager implements Runnable {
-	private PeerController controller; // controller
-	private ObjectInputStream objectInputStream; // neighbor peer input stream
-	private CommunicateWithPeer peerMessageSender; // peerMessageSender
-	private LogHelper messageLoggerUtil; // log util
+	private PeerController peerController;
+	private LogHelper logHelper;
+	private ObjectInputStream objectInputStream;
+	private CommunicateWithPeer communicateWithPeer;
+	private boolean hasHandShakeMessageSent;
 
-	private String peerId; // peer id
-	private Socket neighborSocket; // neighbor peer socket
-	private boolean isHandshakeReceived = false;
-	private boolean isChunkStarted = false;
-	private boolean isHandShakeSent = false;
-	/**
-	 * get new instance of ConnectionManager
-	 * 
-	 * @param socket
-	 * @param controller
-	 * @return
-	 */
-	// Required change also
-	synchronized public static ConnectionManager createNewInstance(Socket socket, PeerController controller) {
-		ConnectionManager connectionManager = new ConnectionManager();
-		connectionManager.neighborSocket = socket;
-		connectionManager.controller = controller;
-		if (!connectionManager.init(controller)) {
-			connectionManager.close();
-			connectionManager = null;
-		}
-		return connectionManager;
+	private String peerId;
+	private Socket peerSocket;
+
+	ConnectionManager(){
+		hasHandShakeMessageSent = false;
 	}
-
-	/**
-	 * init
-	 * 
-	 * @param controller
-	 * @return
-	 */
-	// Required change also
-	synchronized private boolean init(PeerController controller) {
-		if (neighborSocket == null) {
-			return false;
-		}
-
-		ObjectOutputStream neighborPeerOutputStream;
-		try {
-			neighborPeerOutputStream = new ObjectOutputStream(neighborSocket.getOutputStream());
-			objectInputStream = new ObjectInputStream(neighborSocket.getInputStream());
-		} catch (IOException e) {
-			e.printStackTrace();
-			return false;
-		}
-
-		if (controller == null) {
-			close();
-			return false;
-		}
-
-		peerMessageSender = CommunicateWithPeer.getNewInstance(neighborPeerOutputStream);
-		if (peerMessageSender == null) {
-			close();
-			return false;
-		}
-		new Thread(peerMessageSender).start();
-
-		// chunkRequester = ChunkRequester.getNewInstance(controller, this);
-		messageLoggerUtil = controller.getLogger();
-		return true;
-	}
-
-	/**
-	 * close
-	 */
-	synchronized public void close() {
-		try {
-			if (objectInputStream != null) {
-				objectInputStream.close();
-			}
-		} catch (IOException ignore) {
-		}
-	}
-
-	/**
-	 * run handler
-	 */
-	// Required Change this also
-	public void run() {
-		ByteBuffer buffer = ByteBuffer.allocate(Constants.MAX_MESSAGE_SIZE);
-		byte[] rawData = new byte[Constants.RAW_DATA_SIZE];
-
-		// as soon as peer enters into thread it will first send handshake message and
-		// receive bitfield message
-		if (peerId != null) {
-			sendHandshakeMessage();
-		}
-		try {
-			// System.out.println(LOGGER_PREFIX+": "+peerID+" : Handshake Message sent");
-			while (!controller.isOperationFinish()) {
-				// System.out.println(LOGGER_PREFIX+": "+peerID+" : Waiting for connection in
-				// while(controller.isOperationCompelete() == false){");
-				if (controller.isOperationFinish()) {
-					// System.out.println(LOGGER_PREFIX+": "+peerID+": Breaking from while loop");
-					break;
-				}
-				PeerMessageType message = (PeerMessageType) objectInputStream.readObject();
-				// System.out.println(LOGGER_PREFIX+": "+peerID+": RUN : Received
-				// Message:["+message.getMessageNumber()+"]:
-				// "+Const.getMessageName(message.getType()));
-
-				// handler message with different message type
-				switch (message.getType()) {
-					case Constants.TYPE_HANDSHAKE_MESSAGE:
-						if (message instanceof HandshakeMessage) {
-							HandshakeMessage handshakeMessage = (HandshakeMessage) message;
-							processHandshakeMessage(handshakeMessage);
-						}
-						break;
-				}
-			}
-		} catch (IOException | ClassNotFoundException e) {
-			// e.printStackTrace();
-		}
-	}
-	/**
-	 * processHandshakeMessage
-	 * 
-	 * @param message
-	 */
-	private void processHandshakeMessage(HandshakeMessage message) {
-		peerId = message.getPeerId();
-		//sendBitFieldMessage();
-		if (!isHandShakeSent) {
-			messageLoggerUtil.logMessage("Handshake Message received and processed correctly.");
-			messageLoggerUtil.logMessage("Peer " + controller.getPeerId() + " is connected from Peer " + peerId + ".");
-			sendHandshakeMessage();
-		}
-
-		isHandshakeReceived = true;
-		if (isHandShakeSent && !isChunkStarted()) {
-		}
-	}
-
-	/**
-	 * send HandshakeMessage
-	 * 
-	 * @return
-	 */
-	// Required
-	synchronized boolean sendHandshakeMessage() {
-		try {
-			HandshakeMessage message = new HandshakeMessage();
-			message.setPeerId(controller.getPeerId());
-			peerMessageSender.sendMessage(message);
-			isHandShakeSent = true;
-			messageLoggerUtil.logMessage("Peer [" + controller.getPeerId() + "] : Handshake Message (P2PFILESHARINGPROJ"
-					+ controller.getPeerId() + ") sent");
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		return false;
-	}
+	
 	public String getPeerId() {
 		return peerId;
+	}
+
+	public Socket getPeerSocket() {
+		return peerSocket;
 	}
 
 	synchronized public void setPeerId(String peerId) {
 		this.peerId = peerId;
 	}
 
-	public boolean isHandshakeReceived() {
-		return isHandshakeReceived;
+	public static void assignPeerSocketAndController(Socket socket, ConnectionManager connectionManager,  PeerController peerController){
+		connectionManager.peerSocket = socket;
+		connectionManager.peerController = peerController;
+	}
+	
+	synchronized public static ConnectionManager createNewInstance(Socket socket, PeerController peerController) {
+		ConnectionManager connectionManager = new ConnectionManager();
+		assignPeerSocketAndController(socket, connectionManager, peerController);
+		if(connectionManager.peerSocket == null || !connectionManager.createStreamAndLogger(peerController)){
+			connectionManager.closeStreams();
+			return connectionManager = null;
+		}
+		return connectionManager;
 	}
 
-	public synchronized boolean isChunkStarted() {
-		return isChunkStarted;
+	private ObjectOutputStream initializeStreams() {
+		ObjectOutputStream peerObjectOutputStream;
+		try {
+			peerObjectOutputStream = new ObjectOutputStream(peerSocket.getOutputStream());
+			objectInputStream = new ObjectInputStream(peerSocket.getInputStream());
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+		return peerObjectOutputStream;
+	} 
+
+	private boolean initializePeerMessageSender(PeerController peerController, ObjectOutputStream peerObjectOutputStream) {
+		if (peerController != null) {
+			communicateWithPeer = CommunicateWithPeer.createNewInstance(peerObjectOutputStream);
+			return communicateWithPeer != null;
+		}
+		return false;
+	}
+
+	synchronized private boolean createStreamAndLogger(PeerController peerController) {
+		ObjectOutputStream peerObjectOutputStream = initializeStreams();
+		if (peerObjectOutputStream == null) {
+			return false;
+		}
+		if (!initializePeerMessageSender(peerController,peerObjectOutputStream)) {
+			closeStreams();
+			return false;
+		}
+		logHelper = peerController.getLogger();
+		new Thread(communicateWithPeer).start();
+		return true;
+	}
+
+	synchronized public void closeStreams() {
+		if(objectInputStream == null){
+			return;
+		}
+		try {
+			objectInputStream.close();
+		} catch (Exception ignore) {
+			ignore.printStackTrace();
+		}
+	}
+
+	public void run() {
+		if (peerId != null) {
+			sendHandshakeMessage();
+		}
+	
+		while (!peerController.isOperationFinish() && receiveAndProcessMessage()) {
+			// Continue receiving and processing messages
+		}
+	}
+
+	private boolean receiveAndProcessMessage() {
+		if (peerController.isOperationFinish()) {
+				return false;
+		}
+		try {
+			PeerMessageType object = (PeerMessageType) objectInputStream.readObject();
+			switch (object.getType()) {
+				case Constants.TYPE_HANDSHAKE_MESSAGE:
+					if (object instanceof HandshakeMessage) {
+						HandshakeMessage handshakeMessage = (HandshakeMessage) object;
+						processHandshakeMessage(handshakeMessage);
+					}
+					break;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+	private void processHandshakeMessage(HandshakeMessage message) {
+		peerId = message.getPeerId();
+		if (!hasHandShakeMessageSent) {
+			logReceivedHandShakeMessage();
+			sendHandshakeMessage();
+		}
+		// Handshake has been completed.
+	}
+
+	synchronized boolean sendHandshakeMessage() {
+		try {
+			HandshakeMessage message = new HandshakeMessage();
+			message.setPeerId(peerController.getPeerId());
+			communicateWithPeer.communicateMessageToPeer(message);
+			return logHandShakeMessage();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public void logReceivedHandShakeMessage(){
+		
+		logHelper.logMessage("Handshake Message received and processed correctly.");
+		StringBuilder logMessage = new StringBuilder("");
+		logMessage.append("Peer ");
+		logMessage.append(peerController.getPeerId());
+		logMessage.append(" is connected from Peer ");
+		logMessage.append(peerId+" .");
+		logHelper.logMessage(logMessage.toString());
+
+		
+	}
+
+	public boolean logHandShakeMessage(){
+
+		StringBuilder logMessage = new StringBuilder("");
+		logMessage.append("Peer [ ");
+		logMessage.append(peerController.getPeerId());
+		logMessage.append(" ] : Handshake Message (P2PFILESHARINGPROJ");
+		logMessage.append(peerController.getPeerId());
+		logMessage.append(peerId+") sent");
+		logHelper.logMessage(logMessage.toString());
+		return hasHandShakeMessageSent = true;
 	}
 
 }
