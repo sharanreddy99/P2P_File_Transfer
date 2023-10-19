@@ -1,106 +1,80 @@
 package main.Datahandler;
 
-import java.io.Serializable;
-import java.util.Arrays;
+import java.util.*;
+import java.io.*;
 
-/**
- * Bit handler
- */
+
 public class ManageBitFields implements Serializable {
 
-	private final boolean[] bitfieldVector; // bitfield vector
-	private final int size;
+	private final int[] segmentArray;
 
 	/**
-	 * The construct
-	 * 
-	 * @param numOfPieces the num of pieces
+	 * At the begining no segments are present, so initalize with 0
 	 */
 	public ManageBitFields(int numOfPieces) {
-		bitfieldVector = new boolean[numOfPieces];
-		size = numOfPieces;
-		for (int i = 0; i < size; i++) {
-			bitfieldVector[i] = false;
-		}
+		segmentArray = new int[numOfPieces];
+		Arrays.fill(segmentArray, 0);
 	}
 
 	/**
-	 * getSize
-	 * 
-	 * @return
+	 * Get the total number of segments
 	 */
-	public int getSize() {
-		return size;
+	public int getNumberOfSegments() {
+		return segmentArray.length;
 	}
 
 	/**
-	 * get bitfield value
-	 * 
-	 * @param index
-	 * @return
+	 * Put the value at given index
 	 */
-	public boolean getBitField(int index) {
-		return bitfieldVector[index];
+	synchronized public void setValueAtIndex(int index, boolean value) {
+		segmentArray[index] = value ?  1 : 0;
 	}
 
 	/**
-	 * set
-	 * 
-	 * @param index
-	 * @param value
+	 * Fill the segment Array with number, indicating complete download/not downloaded
 	 */
-	synchronized public void setBitField(int index, boolean value) {
-		bitfieldVector[index] = value;
+	public void fillTheSegmentArrayWithNumber(int number) {
+		Arrays.fill(segmentArray, number);
 	}
 
 	/**
-	 * print bitvector
+	 * Get the count of downloaded segments
 	 */
-	public void printVector() {
-		System.out.println(" printing bitvector");
-		int i = 0;
-		while (i < size) {
-			System.out.print(" " + i + " : " + bitfieldVector[i++]);
-		}
-		System.out.println();
-	}
-
-	/**
-	 * fill
-	 */
-	public void setBitFieldOnForAllIndexes() {
-		Arrays.fill(bitfieldVector, true);
-	}
-
-	/**
-	 *
-	 * @return
-	 */
-	public int getNoOfPieces() {
-		int counter = 0;
-		boolean[] vector = this.bitfieldVector;
-		for (int i = 0, vectorLength = vector.length; i < vectorLength; i++) {
-			if (vector[i]) {
-				counter++;
+	public int getCountOfDownloadedSegments() {
+		if(segmentArray != null){
+			int segmentCount = 0;
+			for(int segment: segmentArray){
+				if(segment == 1){
+					segmentCount++;
+					break;
+				}
 			}
+			return segmentCount;
 		}
-		return counter;
+		return 0;
 	}
 
 	/**
-	 * whether the file download completed
-	 * 
-	 * @return
+	 * Check if all segments of the file are downloaded
 	 */
-	public boolean isFileDownloadComplete() {
-		if (bitfieldVector == null || bitfieldVector.length == 0) {
-			return false;
-		}
-		for (int i = 0; i < getSize(); i++) {
-			if (!bitfieldVector[i]) {
-				return false;
+	public boolean checkIfFileIsDownloaded() {
+		if(segmentArray != null){
+			boolean ret = true;
+			for(int segment: segmentArray){
+				if(segment == 0){
+					ret = false;
+					break;
+				}
 			}
+			return ret;
 		}
-		return true;
+		return false;
+	}
+
+	/**
+	 * Retrun the value present at the given index
+	 */
+	public int getValueAtIndex(int index) {
+		return segmentArray[index];
 	}
 }

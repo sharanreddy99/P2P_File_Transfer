@@ -1,108 +1,81 @@
 package main.Datahandler;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.RandomAccessFile;
+import java.io.*;
 
 import main.constants.Constants;
 import main.helper.CommonConfigHelper;
 
 /**
- * Piece Manager
+ * Class to Manage the data segments
  */
 public class ManageDataSegments {
 
-	int numOfPieces; // num of piece
-	int size; // piece size
+	int numOfSegments;
+	int segmentSize;
 
-	private RandomAccessFile outStream;
-	private FileInputStream inStream;
+	private RandomAccessFile outputStream;
+	private FileInputStream inputStream;
 
-	private static ManageBitFields bitField;
-	private static volatile ManageDataSegments instance;
+	private static ManageBitFields segmentFields;
+	private static volatile ManageDataSegments object;
 
 	/**
-	 * get instance
-	 * 
-	 * @param isFileExists
-	 * @param peerID
-	 * @return
+	 * Return the singleton object of the ManageDataSegments class if present otherwise
+	 * create one and send
 	 */
-	public synchronized static ManageDataSegments returnSingletonInstance(boolean isFileExists, String peerID) {
-		if (instance == null) {
-			instance = new ManageDataSegments();
-			if (!instance.init(isFileExists, peerID)) {
-				instance = null;
-			}
+	public synchronized static ManageDataSegments returnSingletonInstance(boolean fileAlreadyDownloaded, String id) {
+		if(object != null){
+			return object;
 		}
-		return instance;
+		else{
+			object = new ManageDataSegments();
+			object = object.attachAllParameters(id,fileAlreadyDownloaded);
+			return object;
+		}
 	}
 
 	/**
-	 * init
-	 * 
-	 * @param isFileExists
-	 * @param peerID
-	 * @return
+	 * 	Read and Attach all parameters present in cofiguration file
 	 */
-	//Required
-	public boolean init(boolean isFileExists, String peerID) {
-		// get config logMessage(: PieceSize
-		if (CommonConfigHelper.getConfig("PieceSize") != null)
-			size = Integer.parseInt(CommonConfigHelper.getConfig("PieceSize"));
-		else {
-			// System.err.println("Piece Size not in Properties file. Invalid Properties
-			// File!!!");
+	public ManageDataSegments attachAllParameters(String id, boolean fileAlreadyDownloaded) {
+		if(CommonConfigHelper.getConfig("PieceSize") == null || CommonConfigHelper.getConfig("FileSize") == null || CommonConfigHelper.getConfig("FileName") == null){
+			return null;
 		}
-
-		// get config logMessage(: FileSize
-		if (CommonConfigHelper.getConfig("FileSize") != null) {
-			numOfPieces = (int) Math.ceil(Integer.parseInt(CommonConfigHelper.getConfig("FileSize")) / (size * 1.0));
-		}
-
-		try {
-			bitField = new ManageBitFields(numOfPieces);
-			if (isFileExists) {
-				bitField.setBitFieldOnForAllIndexes();
-			}
-			String outputFileName = CommonConfigHelper.getConfig("FileName");
-
-			// String directoryName = "peer_" + peerID;
-			String directoryName = peerID;
-			File directory = new File(directoryName);
-
-			if (!isFileExists) {
-				directory.mkdir();
-			}
-
-			outputFileName = directory.getAbsolutePath() + "/" + outputFileName;
-			outStream = new RandomAccessFile(outputFileName, "rw");
-			outStream.setLength(Integer.parseInt(CommonConfigHelper.getConfig(Constants.FILE_SIZE)));
-			return true;
-		} catch (Exception e) {
+		try{
+			segmentSize = Integer.decode(CommonConfigHelper.getConfig("PieceSize"));
+			numOfSegments = (int) Math.ceil(Integer.decode(CommonConfigHelper.getConfig("FileSize")) / ((double)segmentSize));
+		}catch(Exception e){
 			e.printStackTrace();
+			return null;
 		}
-		return false;
 
+		try {
+			segmentFields = new ManageBitFields(numOfSegments);
+			if(!fileAlreadyDownloaded){
+				segmentFields.fillTheSegmentArrayWithNumber(0);
+			}
+			else{
+				segmentFields.fillTheSegmentArrayWithNumber(1);
+			}
+			File dir = new File(id);
+			boolean makeDir = !fileAlreadyDownloaded ? dir.mkdir() : false;
+			outputStream = new RandomAccessFile(dir.getAbsolutePath() + "/" + CommonConfigHelper.getConfig("FileName"), "rw");
+			outputStream.setLength(Integer.parseInt(CommonConfigHelper.getConfig(Constants.FILE_SIZE)));
+			return object;
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	/**
-	 * close
+	 * Close input and output streams
 	 */
-	synchronized public void close() {
-		try {
-			if (outStream != null) {
-				outStream.close();
-			}
-		} catch (Exception ignore) {
+	synchronized public void closeIOStreams() {
+		try{
+			outputStream.close();
+			inputStream.close();
+		}catch(Exception e){
+			// outputstream or inputstream may not be still present
 		}
-
-		try {
-			if (inStream != null) {
-				inStream.close();
-			}
-		} catch (Exception ignore) {
-		}
-
 	}
 }
