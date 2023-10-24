@@ -10,14 +10,13 @@ import main.helper.CommonConfigHelper;
  */
 public class ManageDataSegments {
 
-	int numOfSegments;
-	int segmentSize;
-
 	private RandomAccessFile outputStream;
 	private FileInputStream inputStream;
-
+	int segmentSize;
 	private static ManageBitFields segmentFields;
 	private static volatile ManageDataSegments object;
+	int numOfSegments;
+
 
 	/**
 	 * Return the singleton object of the ManageDataSegments class if present otherwise

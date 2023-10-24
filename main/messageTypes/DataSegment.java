@@ -1,31 +1,26 @@
 package main.messageTypes;
-
 import java.io.Serializable;
-
-/**
- * piece
- */
 public class DataSegment implements Serializable {
-	private byte[] byteData;
+	private byte[] data;
 	int size;
 
 	public DataSegment(int size) {
 		this.size = size;
 	}
 
-	public byte[] getByteData() {
-		return byteData;
+	public void setData(byte[] byteData) {
+		this.data = byteData;
 	}
 
-	public void setByteData(byte[] byteData) {
-		this.byteData = byteData;
+	public byte[] getData() {
+		return data;
 	}
 
-	public int getSize() {
-		if (byteData == null) {
-			return -1;
-		} else {
-			return byteData.length;
-		}
+	public int getDataLength(){
+		return data.length;
+	}
+
+	public int size() {
+		return data != null ? getDataLength() : -1;
 	}
 }

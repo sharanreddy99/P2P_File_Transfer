@@ -32,13 +32,13 @@ public class LogHelper {
 	 * @return null
 	 */
 	private void createLogFile() {
-		String directory = "" + Constants.LOG_FILE_DIRECTORY_NAME;
+		String directory = "" + Constants.LOG_DIRECTORY_NAME;
 		File file = new File(directory);
 		if (!file.exists()) {
 			file.mkdirs();
 		}
 
-		this.fileName = String.format("%s/%s%s.log", directory, Constants.LOG_FILE_NAME_PREFIX, peerID);
+		this.fileName = String.format("%s/%s%s.log", directory, Constants.LOG_FILE_PREFIX, peerID);
 		try {
 			this.logWriter = new BufferedWriter(new FileWriter(this.fileName));
 		} catch (IOException e) {

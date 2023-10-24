@@ -1,37 +1,38 @@
 package main.messageTypes;
+import main.constants.*;
 
-import main.constants.Constants;
-
-/**
- * HandshakeMessage
- */
 public class HandshakeMessage implements PeerMessageType {
-	private static int COUNT = 0;
+	private static int messageNumberCounter = 0;
 
-	private final int messageNumber;
-	private String peerId;
+	private int messageNumber;
+	private String ID;
 
 	public HandshakeMessage() {
-		messageNumber = ++COUNT;
+		attachMessageNumber(this);
 	}
 
-	public void setPeerId(String peerId) {
-		this.peerId = peerId;
+	public static void attachMessageNumber(HandshakeMessage obj){
+		messageNumberCounter += 1;
+		obj.messageNumber = messageNumberCounter;
+	}
+
+	public void setID(String peerId) {
+		this.ID = peerId;
 	}
 
 	public String getPeerId() {
-		return peerId;
+		return ID;
 	}
 
-	public int getType() {
+	public int messageType() {
 		return Constants.TYPE_HANDSHAKE_MESSAGE;
 	}
 
-	public int getLength() {
+	public int length() {
 		return 0;
 	}
 
-	public int getMessageNumber() {
+	public int messageNumber() {
 		return messageNumber;
 	}
 

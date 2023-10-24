@@ -98,18 +98,15 @@ public class ConnectionManager implements Runnable {
 			sendHandshakeMessage();
 		}
 	
-		while (!peerController.isOperationFinish() && receiveAndProcessMessage()) {
+		while (receiveAndProcessMessage()) {
 			// Continue receiving and processing messages
 		}
 	}
 
 	private boolean receiveAndProcessMessage() {
-		if (peerController.isOperationFinish()) {
-				return false;
-		}
 		try {
 			PeerMessageType object = (PeerMessageType) objectInputStream.readObject();
-			switch (object.getType()) {
+			switch (object.messageType()) {
 				case Constants.TYPE_HANDSHAKE_MESSAGE:
 					if (object instanceof HandshakeMessage) {
 						HandshakeMessage handshakeMessage = (HandshakeMessage) object;
@@ -135,7 +132,7 @@ public class ConnectionManager implements Runnable {
 	synchronized boolean sendHandshakeMessage() {
 		try {
 			HandshakeMessage message = new HandshakeMessage();
-			message.setPeerId(peerController.getPeerId());
+			message.setID(peerController.getPeerId());
 			communicateWithPeer.communicateMessageToPeer(message);
 			return logHandShakeMessage();
 		} catch (Exception e) {

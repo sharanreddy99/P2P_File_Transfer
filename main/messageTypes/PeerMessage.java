@@ -1,10 +1,7 @@
 package main.messageTypes;
 
 import main.Datahandler.*;
-/**
- * Peer2PeerMessage
- */
-public class Peer2PeerMessage implements PeerMessageType {
+public class PeerMessage implements PeerMessageType {
 	private static int COUNT = 0;
 
 	private DataSegment data;
@@ -15,23 +12,23 @@ public class Peer2PeerMessage implements PeerMessageType {
 	private int messageType;
 	public int messageNumber = 0;
 
-	private Peer2PeerMessage() {
+	private PeerMessage() {
 		messageNumber = ++COUNT;
 	}
 
-	public static Peer2PeerMessage create() {
-		return new Peer2PeerMessage();
+	public static PeerMessage create() {
+		return new PeerMessage();
 	}
 
-	public int getType() {
+	public int messageType() {
 		return this.messageType;
 	}
 
-	public int getLength() {
+	public int length() {
 		return this.length;
 	}
 
-	public int getMessageNumber() {
+	public int messageNumber() {
 		return messageNumber;
 	}
 

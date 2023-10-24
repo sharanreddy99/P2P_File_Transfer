@@ -83,7 +83,7 @@ public class PeerServer implements Runnable {
 	 */
 	public void run() {
 		try {
-			HashMap<String, Peer> peerInfoMap = peerConfigReader.getPeerInfoMap();
+			HashMap<String, Peer> peerInfoMap = peerConfigReader.getPeerMap();
 			Peer serverPeerInfo = peerInfoMap.get(peerID);
 
 			serverSocket = new ServerSocket(serverPeerInfo.getPort());

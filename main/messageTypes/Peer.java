@@ -16,16 +16,12 @@ public class Peer {
 		this.isFilePresent = fileParam.equals("1");
 	}
 
-	public String getAddress() {
-		return address;
-	}
-
 	public void setAddress(String address) {
 		this.address = address;
 	}
 
-	public int getPort() {
-		return port;
+	public String getAddress() {
+		return address;
 	}
 
 	public void setPort(int port) {
@@ -36,19 +32,23 @@ public class Peer {
 		this.port = Integer.parseInt(port);
 	}
 
+	public int getPort() {
+		return port;
+	}
+
+	public void setID(String ID) {
+		this.ID = ID;
+	}
+
 	public String getPeerId() {
 		return this.ID;
 	}
 
-	public void setPeerId(String ID) {
-		this.ID = ID;
-	}
-
-	public boolean isFileExist() {
-		return this.isFilePresent;
-	}
-
 	public void setFileExist(boolean fileStatus) {
 		this.isFilePresent = fileStatus;
+	}
+
+	public boolean hasFile() {
+		return this.isFilePresent;
 	}
 }

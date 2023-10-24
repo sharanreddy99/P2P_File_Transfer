@@ -1,4 +1,3 @@
-// Done
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -30,7 +29,7 @@ public class StartRemoteServers {
 
 		// Fetch the peer logMessage( configuration from the config file.
 		PeerInfoHelper fileReader = PeerInfoHelper.returnSingletonInstance();
-		HashMap<String, Peer> peerMap = fileReader.getPeerInfoMap();
+		HashMap<String, Peer> peerMap = fileReader.getPeerMap();
 
 		if (Constants.IS_LOCAL_HOST) {
 			Runtime.getRuntime().exec("make");

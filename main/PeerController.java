@@ -1,22 +1,19 @@
 package main;
 
-import java.io.IOException;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.util.stream.Collectors;
 
-import main.constants.Constants;
-import main.connections.ConnectionManager;
+import main.constants.*;
 import main.Datahandler.ManageDataSegments;
+import main.messageTypes.Peer;
 import main.helper.LogHelper;
 import main.helper.PeerInfoHelper;
-import main.messageTypes.Peer;
+import main.connections.ConnectionManager;
 
 /**
- * Controller
+ * Peer Controller
  */
 public class PeerController {
 
@@ -27,9 +24,9 @@ public class PeerController {
 	private LogHelper logger;
 	private String peerId;
 
-	private boolean connectionEstablished = false;
+	private boolean isConnectionEstablished = false;
 
-	private static volatile PeerController instance = null;
+	private static PeerController instance = null;
 
 	private PeerController(String peerId){
 		this.peerId = peerId;
@@ -38,11 +35,7 @@ public class PeerController {
 	/**
 	 * returnSingletonInstance: returns a singleton peerController instance for the
 	 * given peer
-	 * 
-	 * @param peerID
-	 * @return
 	 */
-	// Required
 	public static synchronized PeerController returnSingletonInstance(String peerID) {
 		if(instance != null){
 			return instance;
@@ -59,13 +52,12 @@ public class PeerController {
 	/**
 	 * starts the peer process.
 	 */
-	// Required
 	public void beginPeerProcess() {
 		// start the current peer server
 		new Thread(peerServer).start();
 
 		//Now connect to all previously started peers
-		HashMap<String, Peer> peerInfoMap = peerInfoHelperObj.getPeerInfoMap();
+		HashMap<String, Peer> peerInfoMap = peerInfoHelperObj.getPeerMap();
 
 		try {
 			int currentPeerId = Integer.parseInt(peerId);
@@ -74,40 +66,35 @@ public class PeerController {
 					establishConnection(peerInfoMap.get(set.getKey()));
 				}
 			}
-
-			setAllPeersConnection(true);
-
 		} catch (Exception e) {
 			System.out.printf("Exception occured while creating connections with neighbours. Message: %s\n",
 					e.getMessage());
+			setIsConnectionEstablished(false);
+			return;
 		}
+		setIsConnectionEstablished(true);
 	}
 	/**
-	 * connection to neighbor peer.
-	 *
-	 * @param peerInfo
+	 * Start a connection with the peer
 	 */
-	// Required Change also
-	private void establishConnection(Peer peerInfo) throws IOException {
-		Socket neighborPeer = new Socket(peerInfo.getAddress(), peerInfo.getPort());
+	private void establishConnection(Peer peer) throws IOException {
+		Socket neighborPeer = new Socket(peer.getAddress(), peer.getPort());
 		ConnectionManager getNewPeerHandler = ConnectionManager.createNewInstance(neighborPeer, this);
-
-		getNewPeerHandler.setPeerId(peerInfo.getPeerId());
-		connectionManagers.add(getNewPeerHandler);
-
-		new Thread(getNewPeerHandler).start();
+		setIdAndStartPeer(getNewPeerHandler, peer);
 	}
 
-	//Required
+	/*
+	 * Add data Segment Manager to the peer controller
+	 */
 	private void configPieceManager(boolean isFileExists) {
 		this.dataSegmentManager = ManageDataSegments.returnSingletonInstance(isFileExists, peerId);
 	}
 
-	//Required
+	// Configure piece manager, peer server and attach looger instance
 	private boolean configControler() {
 		peerInfoHelperObj = PeerInfoHelper.returnSingletonInstance();
 		Peer currPeer = peerInfoHelperObj.getPeerObjectByKey(peerId);
-		boolean isFileExists = currPeer != null && currPeer.isFileExist();
+		boolean isFileExists = currPeer != null && currPeer.hasFile();
 		this.connectionManagers = new ArrayList<ConnectionManager>();
 
 		// configure piece manager based on whether the peer has the target file or not
@@ -139,52 +126,59 @@ public class PeerController {
 	}
 
 	/**
-	 * register peerHandler into connectionManagers list
-	 * 
-	 * @param connectionManager
+	 * Add this peer connectionManager to the connectionManagers list
 	 */
 	public synchronized void addPeerHandler(ConnectionManager connectionManager) {
 		connectionManagers.add(connectionManager);
 	}
 	/**
-	 *
-	 * @return
+	 * Return the total new connection count
 	 */
-	// Required Change
 	public int getMaxNewConnectionsCount() {
-		HashMap<String, Peer> neighborPeerMap = peerInfoHelperObj.getPeerInfoMap();
-		Set<String> peerIDList = neighborPeerMap.keySet();
-
-		int count = 0;
-		for (Iterator<String> iterator = peerIDList.iterator(); iterator.hasNext();) {
-			String peerIdTmp = iterator.next();
-			if (Integer.parseInt(peerIdTmp) > Integer.parseInt(peerId)) {
-				count++;
+		HashMap<String, Peer> neighborPeerMap = peerInfoHelperObj.getPeerMap();
+		List<Integer> peerIdList = neighborPeerMap.keySet()
+                .stream()
+                .map(key -> {
+                    try {
+                        return Integer.parseInt(key); // Convert each string key to an integer
+                    } catch (NumberFormatException e) {
+                        return null; // Handle invalid conversions
+                    }
+                })
+                .filter(Objects::nonNull) // Remove nulls (failed conversions)
+                .collect(Collectors.toList());
+		int connectionCount = 0;
+		int id = Integer.valueOf(peerId);
+		for(int i=0; i<peerIdList.size(); i++){
+			if(peerIdList.get(i) > id){
+				connectionCount++;
 			}
 		}
-
-		return count;
-	}
-
-	// Required
-	public boolean isOperationFinish() {
-		return false;
+		return connectionCount;
 	}
 
 	public String getPeerId() {
 		return peerId;
 	}
 
-	public void setAllPeersConnection(boolean isAllPeersConnection) {
-		this.connectionEstablished = isAllPeersConnection;
+	// Retrun true if connection has been established
+	public boolean getIsConnectionEstablished() {
+		return isConnectionEstablished;
 	}
 
-	// Required
+	public void setIsConnectionEstablished(boolean isAllPeersConnection) {
+		this.isConnectionEstablished = isAllPeersConnection;
+	}
+
 	public synchronized LogHelper getLogger() {
 		return logger;
 	}
 
-	public boolean isConnection() {
-		return connectionEstablished;
+	// Function to set peer id and start the peer
+	public void setIdAndStartPeer(ConnectionManager peerHandler, Peer peer) 
+	{
+		peerHandler.setPeerId(peer.getPeerId());
+		connectionManagers.add(peerHandler);
+		new Thread(peerHandler).start();
 	}
 }

@@ -69,9 +69,9 @@ public class PeerInfoHelper {
 	/**
 	 * Returns the complete peer info
 	 * 
-	 * @return a map of peerID, peerInfo
+	 * @return a map of peerID, peer Object
 	 */
-	public HashMap<String, Peer> getPeerInfoMap() {
+	public HashMap<String, Peer> getPeerMap() {
 		return peerInfoMap;
 	}
 

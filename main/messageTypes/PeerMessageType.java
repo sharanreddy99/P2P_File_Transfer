@@ -1,12 +1,9 @@
 package main.messageTypes;
 
-import java.io.Serializable;
+import java.io.*;
 
 public interface PeerMessageType extends Serializable {
-
-	int getType();
-
-	int getLength();
-
-	int getMessageNumber();
+	int length();
+	int messageType();
+	int messageNumber();
 }

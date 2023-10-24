@@ -23,7 +23,6 @@ public class CommunicateWithPeer implements Runnable {
 	 * @param outputStream
 	 * @return
 	 */
-	// Required Change
 	public static CommunicateWithPeer createNewInstance(ObjectOutputStream outputStream) {
 		CommunicateWithPeer communicateWithPeer = new CommunicateWithPeer();
 		return !communicateWithPeer.createNewQueue() && communicateWithPeer.removeQueue() 
@@ -35,8 +34,6 @@ public class CommunicateWithPeer implements Runnable {
 		communicateWithPeer.objectOutputStream = outputStream;
 		return communicateWithPeer;
 	}
-
-	// Required change
 	private boolean createNewQueue() {
 		try{
 			messageQueue = new ArrayBlockingQueue<>(Constants.SENDER_QUEUE_SIZE);
