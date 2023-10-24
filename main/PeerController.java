@@ -129,7 +129,7 @@ public class PeerController {
     }
 
     /**
-     * Terminate all necessary objects by closing and freeing them from memory and exit the process safely.
+     * Terminate all necesary objects.
      */
     public void terminateObjects() {
         logger.destroy();
