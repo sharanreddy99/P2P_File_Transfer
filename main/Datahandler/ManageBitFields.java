@@ -3,78 +3,92 @@ package main.Datahandler;
 import java.util.*;
 import java.io.*;
 
-
 public class ManageBitFields implements Serializable {
 
-	private final int[] segmentArray;
+    private final int[] segmentArray;
 
-	/**
-	 * At the begining no segments are present, so initalize with 0
-	 */
-	public ManageBitFields(int numOfPieces) {
-		segmentArray = new int[numOfPieces];
-		Arrays.fill(segmentArray, 0);
-	}
+    /**
+     * Constructor to initialize the bit field with the given number of pieces.
+     *
+     * @param numOfPieces The total number of segments or pieces
+     */
+    public ManageBitFields(int numOfPieces) {
+        segmentArray = new int[numOfPieces];
+        Arrays.fill(segmentArray, 0); // Initialize all segments to not downloaded (0)
+    }
 
-	/**
-	 * Get the total number of segments
-	 */
-	public int getNumberOfSegments() {
-		return segmentArray.length;
-	}
+    /**
+     * Get the total number of segments in the bit field.
+     *
+     * @return The number of segments
+     */
+    public int getNumberOfSegments() {
+        return segmentArray.length;
+    }
 
-	/**
-	 * Put the value at given index
-	 */
-	synchronized public void setValueAtIndex(int index, boolean value) {
-		segmentArray[index] = value ?  1 : 0;
-	}
+    /**
+     * Set the value (downloaded or not downloaded) at the given index in the bit field.
+     *
+     * @param index The index of the segment
+     * @param value True if downloaded, false if not downloaded
+     */
+    synchronized public void setValueAtIndex(int index, boolean value) {
+        segmentArray[index] = value ? 1 : 0; // Set to 1 if downloaded, 0 if not downloaded
+    }
 
-	/**
-	 * Fill the segment Array with number, indicating complete download/not downloaded
-	 */
-	public void fillTheSegmentArrayWithNumber(int number) {
-		Arrays.fill(segmentArray, number);
-	}
+    /**
+     * Fill the entire bit field with the given number, indicating complete download or not downloaded.
+     *
+     * @param number The value to fill the bit field with (1 for downloaded, 0 for not downloaded)
+     */
+    public void fillTheSegmentArrayWithNumber(int number) {
+        Arrays.fill(segmentArray, number);
+    }
 
-	/**
-	 * Get the count of downloaded segments
-	 */
-	public int getCountOfDownloadedSegments() {
-		if(segmentArray != null){
-			int segmentCount = 0;
-			for(int segment: segmentArray){
-				if(segment == 1){
-					segmentCount++;
-					break;
-				}
-			}
-			return segmentCount;
-		}
-		return 0;
-	}
+    /**
+     * Get the count of downloaded segments in the bit field.
+     *
+     * @return The count of downloaded segments
+     */
+    public int getCountOfDownloadedSegments() {
+        if (segmentArray != null) {
+            int segmentCount = 0;
+            for (int segment : segmentArray) {
+                if (segment == 1) {
+                    segmentCount++;
+                }
+            }
+            return segmentCount;
+        }
+        return 0;
+    }
 
-	/**
-	 * Check if all segments of the file are downloaded
-	 */
-	public boolean checkIfFileIsDownloaded() {
-		if(segmentArray != null){
-			boolean ret = true;
-			for(int segment: segmentArray){
-				if(segment == 0){
-					ret = false;
-					break;
-				}
-			}
-			return ret;
-		}
-		return false;
-	}
+    /**
+     * Check if all segments in the bit field are downloaded.
+     *
+     * @return True if all segments are downloaded, false otherwise
+     */
+    public boolean checkIfFileIsDownloaded() {
+        if (segmentArray != null) {
+            boolean ret = true;
+            for (int segment : segmentArray) {
+                if (segment == 0) {
+                    ret = false;
+                    break;
+                }
+            }
+            return ret;
+        }
+        return false;
+    }
 
-	/**
-	 * Retrun the value present at the given index
-	 */
-	public int getValueAtIndex(int index) {
-		return segmentArray[index];
-	}
+    /**
+     * Get the value (downloaded or not downloaded) at the given index in the bit field.
+     *
+     * @param index The index of the segment
+     * @return 1 if downloaded, 0 if not downloaded
+     */
+    public int getValueAtIndex(int index) {
+        return segmentArray[index];
+    }
 }

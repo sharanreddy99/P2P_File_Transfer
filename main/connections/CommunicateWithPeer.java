@@ -7,37 +7,41 @@ import main.constants.*;
 import main.messageTypes.*;
 
 public class CommunicateWithPeer implements Runnable {
-	
+
 	private ObjectOutputStream objectOutputStream = null;
 	private boolean connectionInactive = false;
 
 	private BlockingQueue<PeerMessageType> messageQueue;
 
+	// Function to toggle the connection status (active/inactive)
 	public void toggleConnectionInactive() {
 		connectionInactive = !connectionInactive;
 	}
 
 	/**
-	 * get new instance of CommunicateWithPeer
+	 * Create a new instance of CommunicateWithPeer
 	 * 
-	 * @param outputStream
-	 * @return
+	 * @param outputStream ObjectOutputStream to send data to the peer
+	 * @return New instance of CommunicateWithPeer
 	 */
 	public static CommunicateWithPeer createNewInstance(ObjectOutputStream outputStream) {
 		CommunicateWithPeer communicateWithPeer = new CommunicateWithPeer();
-		return !communicateWithPeer.createNewQueue() && communicateWithPeer.removeQueue() 
-			? null 
-			: attachOutputStream (outputStream, communicateWithPeer);
+		return !communicateWithPeer.createNewQueue() && communicateWithPeer.removeQueue()
+			? null
+			: attachOutputStream(outputStream, communicateWithPeer);
 	}
 
-	public static CommunicateWithPeer attachOutputStream(ObjectOutputStream outputStream, CommunicateWithPeer communicateWithPeer){
+	// Function to attach an ObjectOutputStream to the CommunicateWithPeer instance
+	public static CommunicateWithPeer attachOutputStream(ObjectOutputStream outputStream, CommunicateWithPeer communicateWithPeer) {
 		communicateWithPeer.objectOutputStream = outputStream;
 		return communicateWithPeer;
 	}
+
+	// Create a new message queue for communication
 	private boolean createNewQueue() {
-		try{
+		try {
 			messageQueue = new ArrayBlockingQueue<>(Constants.SENDER_QUEUE_SIZE);
-		}catch(Exception e){
+		} catch (Exception e) {
 			return false;
 		}
 		return true;
@@ -47,7 +51,7 @@ public class CommunicateWithPeer implements Runnable {
 	public void run() {
 		if (connectionInactive)
 			return;
-		while(messageQueue != null && !connectionInactive){
+		while (messageQueue != null && !connectionInactive) {
 			try {
 				PeerMessageType head = messageQueue.take();
 				objectOutputStream.writeUnshared(head);
@@ -59,38 +63,39 @@ public class CommunicateWithPeer implements Runnable {
 	}
 
 	/**
-	 * communicate message to peer
+	 * Communicate a message to the peer.
 	 * 
-	 * @param message
-	 * @throws InterruptedException
+	 * @param message PeerMessageType to be communicated
+	 * @throws Exception if there are communication issues
 	 */
 	public void communicateMessageToPeer(PeerMessageType message) throws Exception {
-		if(!checkForMessageQueue(messageQueue)){
+		if (!checkForMessageQueue(messageQueue)) {
 			return;
 		}
-		try{
+		try {
 			messageQueue.put(message);
-		}catch(Exception e){
+		} catch (Exception e) {
 			e.printStackTrace();
 			throw e;
 		}
 	}
 
-	public static boolean checkForMessageQueue(BlockingQueue<PeerMessageType> messageQueue){
+	// Check if the message queue is available
+	public static boolean checkForMessageQueue(BlockingQueue<PeerMessageType> messageQueue) {
 		return messageQueue != null;
 	}
 
+	// Remove the message queue
 	public boolean removeQueue() {
-		try{
-			if(messageQueue == null){
+		try {
+			if (messageQueue == null) {
 				return true;
-			}
-			else if(messageQueue.size() != 0) {
+			} else if (messageQueue.size() != 0) {
 				messageQueue.clear();
 				messageQueue = null;
 			}
 			return true;
-		}catch(Exception e){
+		} catch (Exception e) {
 			return false;
 		}
 	}

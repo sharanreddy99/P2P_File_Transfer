@@ -4,59 +4,57 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 
 import main.constants.Constants;
-import main.messageTypes.Peer;
 
 /**
- * This class extracts information related to the common configuration file
+ * This class extracts information related to the common configuration file.
  */
 public class CommonConfigHelper {
 
-	// config data
-	private static LinkedHashMap<String, String> configMap;
+    // Store common configuration data
+    private static LinkedHashMap<String, String> configMap;
 
-	static {
-		configMap = new LinkedHashMap<String, String>();
-		configCommonInfo();
-	}
+    static {
+        configMap = new LinkedHashMap<String, String>();
+        loadCommonConfigInfo();
+    }
 
-	/**
-	 * This function extracts config info from the mentioned common config file
-	 * 
-	 * @return boolean indicating whether the extraction of common config info was
-	 *         successful or not
-	 */
-	private static void configCommonInfo() {
-		try {
-			FileInputStream fir = new FileInputStream(Constants.CONFIGURATION_FILE);
-			BufferedReader br = new BufferedReader(new InputStreamReader(fir));
+    /**
+     * Load and extract common configuration information from the specified common config file.
+     * 
+     * @throws ExceptionInInitializerError if there is an error while loading the common config file
+     */
+    private static void loadCommonConfigInfo() {
+        try {
+            FileInputStream fileInputStream = new FileInputStream(Constants.CONFIGURATION_FILE);
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
 
-			String row;
-			for (; (row = br.readLine()) != null;) {
-				row = row.trim();
-				String[] tokens = row.split(" ");
+            String row;
+            while ((row = bufferedReader.readLine()) != null) {
+                row = row.trim();
+                String[] tokens = row.split(" ");
 
-				configMap.put(tokens[0].trim(), tokens[1].trim());
-			}
+                // Store key-value pairs in the configMap
+                configMap.put(tokens[0].trim(), tokens[1].trim());
+            }
+			bufferedReader.close();
 
-		} catch (IOException e) {
-			System.out.printf("Exception occured when extracting info from the common config file. Message: %s",
-					e.getMessage());
-			throw new ExceptionInInitializerError(
-					"Error while loading the common config file. Message: " + e.getMessage());
-		}
-	}
+        } catch (IOException e) {
+            String errorMessage = "Error while loading the common config file. Message: " + e.getMessage();
+            System.out.printf("Exception occurred when extracting info from the common config file. Message: %s", e.getMessage());
+            throw new ExceptionInInitializerError(errorMessage);
+        }
+    }
 
-	/**
-	 * returns the single config info based on key
-	 * 
-	 * @return a single config value
-	 */
-	public static String getConfig(String key) {
-		return configMap.get(key);
-	}
-
+    /**
+     * Get the configuration value based on the provided key.
+     * 
+     * @param key The key to retrieve the configuration value.
+     * @return The configuration value associated with the key.
+     */
+    public static String getConfig(String key) {
+        return configMap.get(key);
+    }
 }

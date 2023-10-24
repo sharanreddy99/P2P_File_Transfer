@@ -1,39 +1,72 @@
 package main.messageTypes;
+
 import main.constants.*;
 
 public class HandshakeMessage implements PeerMessageType {
-	private static int messageNumberCounter = 0;
+    private static int messageNumberCounter = 0;
 
-	private int messageNumber;
-	private String ID;
+    private int messageNumber;
+    private String ID;
 
-	public HandshakeMessage() {
-		attachMessageNumber(this);
-	}
+    /**
+     * Constructor to create a HandshakeMessage and attach a message number.
+     */
+    public HandshakeMessage() {
+        attachMessageNumber(this);
+    }
 
-	public static void attachMessageNumber(HandshakeMessage obj){
-		messageNumberCounter += 1;
-		obj.messageNumber = messageNumberCounter;
-	}
+    /**
+     * Attach a message number to the HandshakeMessage.
+     *
+     * @param obj The HandshakeMessage object to which the message number is attached.
+     */
+    public static void attachMessageNumber(HandshakeMessage obj) {
+        messageNumberCounter += 1;
+        obj.messageNumber = messageNumberCounter;
+    }
 
-	public void setID(String peerId) {
-		this.ID = peerId;
-	}
+    /**
+     * Set the peer ID for the HandshakeMessage.
+     *
+     * @param peerId The peer ID to set
+     */
+    public void setID(String peerId) {
+        this.ID = peerId;
+    }
 
-	public String getPeerId() {
-		return ID;
-	}
+    /**
+     * Get the peer ID from the HandshakeMessage.
+     *
+     * @return The peer ID
+     */
+    public String getPeerId() {
+        return ID;
+    }
 
-	public int messageType() {
-		return Constants.TYPE_HANDSHAKE_MESSAGE;
-	}
+    /**
+     * Get the message type of the HandshakeMessage.
+     *
+     * @return The message type as defined in Constants
+     */
+    public int messageType() {
+        return Constants.TYPE_HANDSHAKE_MESSAGE;
+    }
 
-	public int length() {
-		return 0;
-	}
+    /**
+     * Get the length of the HandshakeMessage.
+     *
+     * @return The length of the message (always 0 for handshake)
+     */
+    public int length() {
+        return 0;
+    }
 
-	public int messageNumber() {
-		return messageNumber;
-	}
-
+    /**
+     * Get the message number assigned to the HandshakeMessage.
+     *
+     * @return The message number
+     */
+    public int messageNumber() {
+        return messageNumber;
+    }
 }
