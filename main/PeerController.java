@@ -9,16 +9,16 @@ import java.util.Map;
 import java.util.Set;
 
 import main.constants.Constants;
+import main.handlers.PeerHandler;
 import main.helper.ChokeUnchokePeerHelper;
 import main.helper.CommonConfigHelper;
 import main.helper.LogHelper;
 import main.helper.OptimisticUnchokePeerHelper;
 import main.helper.PeerInfoHelper;
-import main.manager.filehandler.PieceManager;
-import main.manager.peerhandler.PeerHandler;
+import main.helper.PieceHelper;
 import main.messageTypes.PeerMessage;
 import main.messageTypes.Peer;
-import main.messageTypes.DataSegment;
+import main.messageTypes.Piece;
 
 /**
  * Controller
@@ -26,7 +26,7 @@ import main.messageTypes.DataSegment;
 public class PeerController {
 
 	private ArrayList<PeerHandler> peerHandlers;
-	private PieceManager pieceManager;
+	private PieceHelper pieceManager;
 	private PeerInfoHelper peerInfoHelperObj;
 
 	private final HashMap<String, String> peerCompleteMap = new HashMap<String, String>();
@@ -125,7 +125,7 @@ public class PeerController {
 	}
 
 	private void configPieceManager(boolean isFileExists) {
-		this.pieceManager = PieceManager.returnSingletonInstance(isFileExists, peerId);
+		this.pieceManager = PieceHelper.returnSingletonInstance(isFileExists, peerId);
 	}
 
 	private boolean configControler() {
@@ -315,7 +315,7 @@ public class PeerController {
 	 * @return
 	 */
 	public PeerMessage genPieceMessage(int index) {
-		DataSegment dataSegment = pieceManager.get(index);
+		Piece dataSegment = pieceManager.get(index);
 		if (dataSegment != null) {
 			PeerMessage message = PeerMessage.create();
 			message.setData(dataSegment);

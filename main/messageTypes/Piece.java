@@ -2,7 +2,7 @@ package main.messageTypes;
 
 import java.io.Serializable;
 
-public class DataSegment implements Serializable {
+public class Piece implements Serializable {
     private byte[] data;
     private int size;
 
@@ -11,7 +11,7 @@ public class DataSegment implements Serializable {
      *
      * @param size The size of the data segment
      */
-    public DataSegment(int size) {
+    public Piece(int size) {
         this.size = size;
     }
 

@@ -1,9 +1,9 @@
-package main.DataHandler;
+package main.helper;
 
 import java.util.*;
 import java.io.*;
 
-public class ManageBitFields implements Serializable {
+public class BitFieldHelper implements Serializable {
 
     private final int[] segmentArray;
 
@@ -12,7 +12,7 @@ public class ManageBitFields implements Serializable {
      *
      * @param numOfPieces The total number of segments or pieces
      */
-    public ManageBitFields(int numOfPieces) {
+    public BitFieldHelper(int numOfPieces) {
         segmentArray = new int[numOfPieces];
         Arrays.fill(segmentArray, 0); // Initialize all segments to not downloaded (0)
     }

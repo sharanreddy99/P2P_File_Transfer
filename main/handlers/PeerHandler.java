@@ -1,4 +1,4 @@
-package main.manager.peerhandler;
+package main.handlers;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

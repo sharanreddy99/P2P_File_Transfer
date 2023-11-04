@@ -1,13 +1,13 @@
-package main.manager.peerhandler;
+package main.handlers;
 
 import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import main.PeerController;
-import main.DataHandler.ManageBitFields;
 import main.constants.Constants;
 import main.helper.CommonConfigHelper;
+import main.helper.BitFieldHelper;
 import main.messageTypes.PeerMessage;
 
 public class ChunkRequester implements Runnable {
@@ -17,7 +17,7 @@ public class ChunkRequester implements Runnable {
 	private BlockingQueue<PeerMessage> messageQueue;
 	private PeerController controller;
 	private PeerHandler peerHandler;
-	private ManageBitFields neighborPeerBitFieldManager = null;
+	private BitFieldHelper neighborPeerBitFieldManager = null;
 
 	private boolean isShutDown = false;
 	int[] pieceIndexArray = new int[1000];
@@ -60,7 +60,7 @@ public class ChunkRequester implements Runnable {
 		int pieceSize = Integer.parseInt(CommonConfigHelper.getConfig("PieceSize"));
 		int numOfPieces = (int) Math
 				.ceil(Integer.parseInt(CommonConfigHelper.getConfig("FileSize")) / (pieceSize * 1.0));
-		neighborPeerBitFieldManager = new ManageBitFields(numOfPieces);
+		neighborPeerBitFieldManager = new BitFieldHelper(numOfPieces);
 
 		return true;
 	}
@@ -185,7 +185,7 @@ public class ChunkRequester implements Runnable {
 	 * @return
 	 */
 	public int getPieceNumberToBeRequested() {
-		ManageBitFields thisPeerBitFiledHandler = controller.getBitFieldMessage().getManageBitFields();
+		BitFieldHelper thisPeerBitFiledHandler = controller.getBitFieldMessage().getManageBitFields();
 		int count = 0;
 		for (int i = 0; i < neighborPeerBitFieldManager.getNumberOfSegments() && count < pieceIndexArray.length; i++) {
 			if (thisPeerBitFiledHandler.getValueAtIndex(i) == 1

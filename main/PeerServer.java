@@ -5,8 +5,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 
+import main.handlers.PeerHandler;
 import main.helper.PeerInfoHelper;
-import main.manager.peerhandler.PeerHandler;
 import main.messageTypes.Peer;
 
 /**

@@ -1,6 +1,6 @@
 package main.messageTypes;
 
-import main.DataHandler.*;
+import main.helper.BitFieldHelper;
 
 /**
  * PeerMessage class represents various message types exchanged between peers in
@@ -9,8 +9,8 @@ import main.DataHandler.*;
 public class PeerMessage implements PeerMessageType {
     private static int COUNT = 0;
 
-    private DataSegment data;
-    private ManageBitFields manageBitFields = null;
+    private Piece data;
+    private BitFieldHelper manageBitFields = null;
     private int index;
     private int length;
 
@@ -83,7 +83,7 @@ public class PeerMessage implements PeerMessageType {
      *
      * @return The data segment
      */
-    public DataSegment getData() {
+    public Piece getData() {
         return data;
     }
 
@@ -92,7 +92,7 @@ public class PeerMessage implements PeerMessageType {
      *
      * @return The bit field manager
      */
-    public ManageBitFields getManageBitFields() {
+    public BitFieldHelper getManageBitFields() {
         return manageBitFields;
     }
 
@@ -101,7 +101,7 @@ public class PeerMessage implements PeerMessageType {
      *
      * @param manageBitFields The bit field manager to set
      */
-    public void setBitFieldHandler(ManageBitFields manageBitFields) {
+    public void setBitFieldHandler(BitFieldHelper manageBitFields) {
         this.manageBitFields = manageBitFields;
     }
 
@@ -110,7 +110,7 @@ public class PeerMessage implements PeerMessageType {
      *
      * @param data The data segment to set
      */
-    public void setData(DataSegment data) {
+    public void setData(Piece data) {
         this.data = data;
     }
 

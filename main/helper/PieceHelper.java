@@ -1,18 +1,16 @@
-package main.manager.filehandler;
+package main.helper;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.RandomAccessFile;
 
-import main.DataHandler.ManageBitFields;
 import main.constants.Constants;
-import main.helper.CommonConfigHelper;
-import main.messageTypes.DataSegment;
+import main.messageTypes.Piece;
 
 /**
  * Piece Manager
  */
-public class PieceManager {
+public class PieceHelper {
 
 	int numOfPieces; // num of piece
 	int size; // piece size
@@ -20,8 +18,8 @@ public class PieceManager {
 	private RandomAccessFile outStream;
 	private FileInputStream inStream;
 
-	private static ManageBitFields bitFieldManager;
-	private static volatile PieceManager instance;
+	private static BitFieldHelper bitFieldManager;
+	private static volatile PieceHelper instance;
 
 	/**
 	 * get instance
@@ -30,9 +28,9 @@ public class PieceManager {
 	 * @param peerID
 	 * @return
 	 */
-	public synchronized static PieceManager returnSingletonInstance(boolean isFileExists, String peerID) {
+	public synchronized static PieceHelper returnSingletonInstance(boolean isFileExists, String peerID) {
 		if (instance == null) {
-			instance = new PieceManager();
+			instance = new PieceHelper();
 			if (!instance.init(isFileExists, peerID)) {
 				instance = null;
 			}
@@ -63,7 +61,7 @@ public class PieceManager {
 		}
 
 		try {
-			bitFieldManager = new ManageBitFields(numOfPieces);
+			bitFieldManager = new BitFieldHelper(numOfPieces);
 			if (isFileExists) {
 				bitFieldManager.fillTheSegmentArrayWithNumber(1);
 			}
@@ -114,8 +112,8 @@ public class PieceManager {
 	 * @param index
 	 * @return
 	 */
-	synchronized public DataSegment get(int index) {
-		DataSegment newDataSegment = new DataSegment(size);
+	synchronized public Piece get(int index) {
+		Piece newDataSegment = new Piece(size);
 		if (bitFieldManager.getValueAtIndex(index) == 1) {
 			byte[] readBytes = new byte[size];
 			int newSize = 0;
@@ -148,7 +146,7 @@ public class PieceManager {
 	 * @param index
 	 * @param piece
 	 */
-	synchronized public void write(int index, DataSegment dataSegment) {
+	synchronized public void write(int index, Piece dataSegment) {
 		if (bitFieldManager.getValueAtIndex(index) == 0) {
 			try {
 				// have to write this piece in Piece object array
@@ -211,7 +209,7 @@ public class PieceManager {
 	 * 
 	 * @return
 	 */
-	public ManageBitFields getBitField() {
+	public BitFieldHelper getBitField() {
 		return bitFieldManager;
 	}
 }

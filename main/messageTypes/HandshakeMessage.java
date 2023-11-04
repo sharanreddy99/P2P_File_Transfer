@@ -18,7 +18,8 @@ public class HandshakeMessage implements PeerMessageType {
     /**
      * Attach a message number to the HandshakeMessage.
      *
-     * @param obj The HandshakeMessage object to which the message number is attached.
+     * @param obj The HandshakeMessage object to which the message number is
+     *            attached.
      */
     public static void attachMessageNumber(HandshakeMessage obj) {
         messageNumberCounter += 1;
