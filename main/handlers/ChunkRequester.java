@@ -154,7 +154,7 @@ public class ChunkRequester implements Runnable {
 		try {
 			int missingPieceIdx = getMissingPieceRandomIdx();
 			if (missingPieceIdx != -1 && peerHandler.isPreviousMessageReceived()) {
-				sendInterestedMessage(missingPieceIdx);
+				sendRequestMessage(missingPieceIdx);
 			}
 		} catch (Exception e) {
 			System.out.println(
@@ -172,7 +172,7 @@ public class ChunkRequester implements Runnable {
 			int missingPieceIdx = getMissingPieceRandomIdx();
 			peerHandler.setPreviousMessageReceived(false);
 			if (missingPieceIdx != -1) {
-				sendInterestedMessage(missingPieceIdx);
+				sendRequestMessage(missingPieceIdx);
 			}
 		} catch (Exception e) {
 			System.out.println(
