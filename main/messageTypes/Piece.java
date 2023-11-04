@@ -2,6 +2,11 @@ package main.messageTypes;
 
 import java.io.Serializable;
 
+/**
+ * This class represents the message of type "Piece"
+ * 
+ * @author Adithya KNG
+ */
 public class Piece implements Serializable {
     private byte[] data;
     private int size;
@@ -42,12 +47,4 @@ public class Piece implements Serializable {
         return data != null ? data.length : 0;
     }
 
-    /**
-     * Get the size of the DataSegment.
-     *
-     * @return The size of the data segment
-     */
-    public int size() {
-        return data != null ? getDataLength() : -1;
-    }
 }

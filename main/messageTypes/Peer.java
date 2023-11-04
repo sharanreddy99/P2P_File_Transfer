@@ -2,12 +2,14 @@ package main.messageTypes;
 
 /**
  * Peer class represents information about a peer.
+ * 
+ * @author Adithya KNG
  */
 public class Peer {
 
-	private String ID, address;
-	private int port;
-	private boolean isFilePresent;
+    private String ID, address;
+    private int port;
+    private boolean isFilePresent;
 
     /**
      * Constructor to create a Peer object with provided information.
@@ -15,7 +17,8 @@ public class Peer {
      * @param ID        The peer ID
      * @param address   The peer's IP address
      * @param port      The port number
-     * @param fileParam A parameter indicating whether the peer has the file (1 for yes, 0 for no)
+     * @param fileParam A parameter indicating whether the peer has the file (1 for
+     *                  yes, 0 for no)
      */
     public Peer(String ID, String address, String port, String fileParam) {
         this.ID = ID;

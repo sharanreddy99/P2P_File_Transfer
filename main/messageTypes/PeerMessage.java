@@ -5,6 +5,8 @@ import main.helper.BitFieldHelper;
 /**
  * PeerMessage class represents various message types exchanged between peers in
  * a peer-to-peer network.
+ * 
+ * @author Adithya KNG
  */
 public class PeerMessage implements PeerMessageType {
     private static int COUNT = 0;

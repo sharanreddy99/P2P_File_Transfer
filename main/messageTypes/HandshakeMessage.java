@@ -2,6 +2,12 @@ package main.messageTypes;
 
 import main.constants.*;
 
+/**
+ * This class represents the Handshake Message used during the peer to peer
+ * communcation
+ * 
+ * @author Adithya KNG
+ */
 public class HandshakeMessage implements PeerMessageType {
     private static int messageNumberCounter = 0;
 
