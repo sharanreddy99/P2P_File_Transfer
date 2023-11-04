@@ -6,8 +6,8 @@ import java.net.Socket;
 import java.util.HashMap;
 
 import main.helper.PeerInfoHelper;
-import main.manager.peerhandler.PeerHandler;
-import main.messageTypes.PeerInfo;
+import main.connections.ConnectionManager;
+import main.messageTypes.Peer;
 
 /**
  * PeerServer
@@ -83,8 +83,8 @@ public class PeerServer implements Runnable {
 	 */
 	public void run() {
 		try {
-			HashMap<String, PeerInfo> peerInfoMap = peerConfigReader.getPeerInfoMap();
-			PeerInfo serverPeerInfo = peerInfoMap.get(peerID);
+			HashMap<String, Peer> peerInfoMap = peerConfigReader.getPeerMap();
+			Peer serverPeerInfo = peerInfoMap.get(peerID);
 
 			serverSocket = new ServerSocket(serverPeerInfo.getPort());
 			int maxConnCount = controller.getMaxNewConnectionsCount();
@@ -93,7 +93,7 @@ public class PeerServer implements Runnable {
 				Socket incomingSocketConn = serverSocket.accept();
 
 				// Create a peer handler instnace
-				PeerHandler peerHandler = PeerHandler.getNewInstance(incomingSocketConn, controller);
+				ConnectionManager peerHandler = ConnectionManager.createNewInstance(incomingSocketConn, controller);
 
 				// Register the peer handler with the controller
 				controller.addPeerHandler(peerHandler);
