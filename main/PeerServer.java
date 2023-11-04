@@ -10,7 +10,8 @@ import main.helper.PeerInfoHelper;
 import main.messageTypes.Peer;
 
 /**
- * This class implements the PeerServer class
+ * This class creates the socket for the current peer and accepts incoming
+ * socket connections from neighboring peers
  * 
  * @author Bhavan Voram
  */
