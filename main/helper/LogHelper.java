@@ -44,7 +44,7 @@ public class LogHelper {
             file.mkdirs();
         }
 
-        this.fileName = String.format("%s/%s%s.log", directory, Constants.LOG_FILE_NAME_PREFIX, peerID);
+        this.fileName = String.format("%s%s.log", Constants.LOG_FILE_NAME_PREFIX, peerID);
         try {
             this.logWriter = new BufferedWriter(new FileWriter(this.fileName));
         } catch (IOException e) {

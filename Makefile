@@ -1,14 +1,15 @@
 default:
 	find . -type f -path "./*" -name "*.class" -delete
 	javac PeerProcess.java && javac StartRemoteServers.java
-	rm -f 1002/thefile
-	rm -f 1003/thefile
-	rm -f 1004/thefile
-	rm -f 1005/thefile
-	rm -f 1007/thefile
-	rm -f 1008/thefile
-	rm -f 1009/thefile
-	rm -rf log
+	rm -rf peer_1002
+	rm -rf peer_1003
+	rm -rf peer_1004
+	rm -rf peer_1005
+	rm -rf peer_1006
+	rm -rf peer_1007
+	rm -rf peer_1008
+	rm -rf peer_1009
+	rm -rf log*
 
 runAll:
 	java StartRemoteServers

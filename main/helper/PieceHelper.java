@@ -73,7 +73,7 @@ public class PieceHelper {
 
 			// create the peer director for storing the downloaded file if it doesnt exist
 			// already
-			File directory = new File(peerID);
+			File directory = new File(String.format(Constants.INPUT_FOLDER, peerID));
 			if (!isFileExists) {
 				directory.mkdir();
 			}
