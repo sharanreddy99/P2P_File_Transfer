@@ -9,7 +9,12 @@ import java.util.concurrent.TimeUnit;
 import main.PeerController;
 import main.constants.Constants;
 
-// This class runs the process of unchoking an optimistically chosen random choked peer.
+/**
+ * This class runs the process of unchoking an optimistically chosen random
+ * choked peer.
+ * 
+ * @author Sharan Sai Reddy Konda
+ */
 public class OptimisticUnchokePeerHelper implements Runnable {
 	private static OptimisticUnchokePeerHelper instance = null;
 	private PeerController controller = null;
@@ -18,7 +23,7 @@ public class OptimisticUnchokePeerHelper implements Runnable {
 	private ScheduledFuture<?> process = null;
 
 	/**
-	 * Returns the singleton instance of the optimistic unchoke manager
+	 * Returns the singleton instance of the optimistic unchoke helper
 	 * 
 	 * @param controller - main controller object that manages all other objects
 	 * @return null

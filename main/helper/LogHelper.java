@@ -11,6 +11,8 @@ import main.constants.Constants;
 
 /**
  * This class helps in logging each action according to the specifications.
+ * 
+ * @author Sharan Sai Reddy Konda
  */
 public class LogHelper {
     private String peerID;

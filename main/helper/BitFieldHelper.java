@@ -3,6 +3,12 @@ package main.helper;
 import java.util.*;
 import java.io.*;
 
+/**
+ * This class is a helper class which contains info related to the available
+ * pieces of a download file for a given peer
+ * 
+ * @author Adithya KNG
+ */
 public class BitFieldHelper implements Serializable {
 
     private final int[] segmentArray;

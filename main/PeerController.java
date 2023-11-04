@@ -198,7 +198,7 @@ public class PeerController {
 		PeerMessage message = PeerMessage.create();
 
 		message.setMessageType(Constants.TYPE_BITFIELD_MESSAGE);
-		message.setBitFieldHandler(pieceManager.getBitField());
+		message.setBitFieldHandler(pieceManager.getBitFieldHelper());
 
 		return message;
 	}
@@ -302,10 +302,16 @@ public class PeerController {
 	 * @param sourcePeerID
 	 */
 	public synchronized void insertPiece(PeerMessage pieceMessage, String sourcePeerID) {
-		pieceManager.write(pieceMessage.getIndex(), pieceMessage.getData());
-		logger.logMessage("Peer [" + instance.getPeerId() + "] has downloaded the piece [" + pieceMessage.getIndex()
-				+ "] from [" + sourcePeerID + "]. Now the number of pieces it has is "
-				+ (pieceManager.getBitField().getCountOfDownloadedSegments()));
+		try {
+			pieceManager.insertNthPiece(pieceMessage.getIndex(), pieceMessage.getData());
+			logger.logMessage("Peer [" + instance.getPeerId() + "] has downloaded the piece [" + pieceMessage.getIndex()
+					+ "] from [" + sourcePeerID + "]. Now the number of pieces it has is "
+					+ (pieceManager.getBitFieldHelper().getCountOfDownloadedSegments()));
+		} catch (IOException e) {
+			System.out
+					.println("Exception occured while inserting the piece at nth position for the given peer. Message: "
+							+ e.getMessage());
+		}
 	}
 
 	/**
@@ -315,15 +321,22 @@ public class PeerController {
 	 * @return
 	 */
 	public PeerMessage genPieceMessage(int index) {
-		Piece dataSegment = pieceManager.get(index);
-		if (dataSegment != null) {
-			PeerMessage message = PeerMessage.create();
-			message.setData(dataSegment);
-			message.setIndex(index);
-			message.setMessageType(Constants.TYPE_PIECE_MESSAGE);
-			return message;
+		try {
+			Piece dataSegment = pieceManager.getNthPieceFromFile(index);
+			if (dataSegment != null) {
+				PeerMessage message = PeerMessage.create();
+				message.setData(dataSegment);
+				message.setIndex(index);
+				message.setMessageType(Constants.TYPE_PIECE_MESSAGE);
+				return message;
+			}
+
+			return null;
+		} catch (IOException e) {
+			System.out.println(
+					"Exception occured while extracting or generating piece message. Message: " + e.getMessage());
+			return null;
 		}
-		return null;
 	}
 
 	/**

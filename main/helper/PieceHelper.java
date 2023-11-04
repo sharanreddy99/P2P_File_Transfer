@@ -2,214 +2,187 @@ package main.helper;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 
 import main.constants.Constants;
 import main.messageTypes.Piece;
 
 /**
- * Piece Manager
+ * This class is a helper class for dealing with piece related information for
+ * the download files available within a given peer.
+ * 
+ * @author Sharan Sai Reddy Konda
  */
 public class PieceHelper {
 
-	int numOfPieces; // num of piece
-	int size; // piece size
+	int numOfPieces, pieceSize;
 
 	private RandomAccessFile outStream;
 	private FileInputStream inStream;
 
-	private static BitFieldHelper bitFieldManager;
-	private static volatile PieceHelper instance;
+	private static BitFieldHelper bitFieldHelper;
+	private static PieceHelper instance;
 
 	/**
-	 * get instance
+	 * Returns the singleton instance of the Piece Helper
 	 * 
-	 * @param isFileExists
-	 * @param peerID
-	 * @return
+	 * @param isFileExists - a boolean indicating whether the file is already
+	 *                     downloaded or not
+	 * @param peerID       - a number indicating the unique identifier for the given
+	 *                     peer
+	 * @return - returns the singleton instance of the Piece Helper
 	 */
 	public synchronized static PieceHelper returnSingletonInstance(boolean isFileExists, String peerID) {
-		if (instance == null) {
-			instance = new PieceHelper();
-			if (!instance.init(isFileExists, peerID)) {
-				instance = null;
-			}
+		if (instance != null) {
+			return instance;
 		}
+
+		instance = new PieceHelper();
+		if (instance.configPieceHelper(isFileExists, peerID) == false)
+			instance = null;
+
 		return instance;
 	}
 
 	/**
-	 * init
+	 * configPieceHelper configures the piece helper for a given peer by setting up
+	 * the output file directory
 	 * 
-	 * @param isFileExists
-	 * @param peerID
-	 * @return
+	 * @param isFileExists - a boolean indicating whether the file is already
+	 *                     downloaded or not
+	 * @param peerID       - a number indicating the unique identifier for the given
+	 *                     peer
+	 * @return - boolean indicating whether the configuration was successful or not
 	 */
-	public boolean init(boolean isFileExists, String peerID) {
-		// get config logMessage(: PieceSize
-		if (CommonConfigHelper.getConfig(Constants.PIECE_SIZE_LABEL) != null)
-			size = Integer.parseInt(CommonConfigHelper.getConfig(Constants.PIECE_SIZE_LABEL));
-		else {
-			// System.err.println("Piece Size not in Properties file. Invalid Properties
-			// File!!!");
-		}
+	public boolean configPieceHelper(boolean isFileExists, String peerID) {
 
-		// get config logMessage(: FileSize
-		if (CommonConfigHelper.getConfig(Constants.FILE_SIZE_LABEL) != null) {
-			numOfPieces = (int) Math
-					.ceil(Integer.parseInt(CommonConfigHelper.getConfig(Constants.FILE_SIZE_LABEL)) / (size * 1.0));
-		}
+		// Compute the number of pieces based on piece and file size
+		pieceSize = Integer.parseInt(CommonConfigHelper.getConfig(Constants.PIECE_SIZE_LABEL));
+		float pieceSizeFloat = (float) pieceSize;
+		numOfPieces = (int) Math
+				.ceil(Float.parseFloat(CommonConfigHelper.getConfig(Constants.FILE_SIZE_LABEL)) / pieceSizeFloat);
 
 		try {
-			bitFieldManager = new BitFieldHelper(numOfPieces);
+			// create a bit field helper and update the bit fields if the file has already
+			// been downloaded.
+			bitFieldHelper = new BitFieldHelper(numOfPieces);
 			if (isFileExists) {
-				bitFieldManager.fillTheSegmentArrayWithNumber(1);
+				bitFieldHelper.fillTheSegmentArrayWithNumber(1);
 			}
-			String outputFileName = CommonConfigHelper.getConfig("FileName");
 
-			// String directoryName = "peer_" + peerID;
-			String directoryName = peerID;
-			File directory = new File(directoryName);
-
+			// create the peer director for storing the downloaded file if it doesnt exist
+			// already
+			File directory = new File(peerID);
 			if (!isFileExists) {
 				directory.mkdir();
 			}
 
-			outputFileName = directory.getAbsolutePath() + "/" + outputFileName;
+			// create the empty download file inside the newly created directory
+			String outputFileName = String.format("%s/%s", directory.getAbsolutePath(),
+					CommonConfigHelper.getConfig(Constants.FILE_NAME_LABEL));
+
 			outStream = new RandomAccessFile(outputFileName, "rw");
 			outStream.setLength(Integer.parseInt(CommonConfigHelper.getConfig(Constants.FILE_SIZE_LABEL)));
+
 			return true;
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.printf("Exception occurred when configuring Piece Helper for the given peer. Message: %s",
+					e.getMessage());
 		}
-		return false;
 
+		return false;
 	}
 
 	/**
-	 * close
+	 * Returns the nth piece from the file if it exists. Otherwise returns null
+	 * 
+	 * @param index - index indicating the position of piece within the file
+	 * @return Piece - returns the nth piece
+	 */
+	synchronized public Piece getNthPieceFromFile(int index) throws IOException {
+		Piece newDataSegment = new Piece(pieceSize);
+
+		// If the requested piece doesn't exist within the given peer, return null.
+		if (bitFieldHelper.getValueAtIndex(index) == 0)
+			return null;
+
+		// Fetch the piece from the download file
+		byte[] reqBytes = new byte[pieceSize];
+		outStream.seek(index * pieceSize);
+		int reqPieceSize = outStream.read(reqBytes);
+
+		// If end of the file reached, piece doesnt exist
+		if (reqPieceSize == -1) {
+			return null;
+		}
+
+		// If we have the complete piece, updat ethe piece segment with it.
+		if (reqPieceSize == pieceSize) {
+			newDataSegment.setData(reqBytes);
+		} else {
+			// Reduce the size of the buffer when the piece size is small
+			byte[] newReqBytes = new byte[reqPieceSize];
+			System.arraycopy(reqBytes, 0, newReqBytes, 0, reqPieceSize);
+			newDataSegment.setData(newReqBytes);
+		}
+
+		return newDataSegment;
+	}
+
+	/**
+	 * Write the given piece at offset index*pieceSize if the piece doesn't exist
+	 * already for a given peer.
+	 * 
+	 * @param index - indicates the offset at which the piece has to be inserted
+	 * @param null
+	 */
+	synchronized public void insertNthPiece(int index, Piece dataSegment) throws IOException {
+		// If the piece doesn't exist with the peer, then write it to the file at the
+		// specified offset.
+		if (bitFieldHelper.getValueAtIndex(index) == 0) {
+			outStream.seek(index * pieceSize);
+			outStream.write(dataSegment.getData());
+
+			// Update the bit field to 1 to indicate that the piece has been downloaded for
+			// a given peer.
+			bitFieldHelper.setValueAtIndex(index, true);
+		}
+	}
+
+	/**
+	 * checks if the file has been downloaded for a given peer.
+	 * 
+	 * @return boolean - indicates whether the file has been downloaded or not
+	 */
+	public synchronized boolean hasDownloadFileComplete() {
+		return bitFieldHelper.checkIfFileIsDownloaded();
+	}
+
+	/**
+	 * returns the BitField helper set for the given peer.
+	 * 
+	 * @return BitFieldHelper
+	 */
+	public BitFieldHelper getBitFieldHelper() {
+		return bitFieldHelper;
+	}
+
+	/**
+	 * close all the existing connections if they are created previously
+	 * 
+	 * @return null
 	 */
 	synchronized public void close() {
 		try {
-			if (outStream != null) {
-				outStream.close();
-			}
-		} catch (Exception ignore) {
-		}
-
-		try {
-			if (inStream != null) {
+			if (inStream != null)
 				inStream.close();
-			}
-		} catch (Exception ignore) {
+			if (outStream != null)
+				outStream.close();
+
+		} catch (Exception e) {
+			System.out
+					.printf("Exception occured while closing connections in Piece Manager. Message: " + e.getMessage());
 		}
-
-	}
-
-	/**
-	 * Gets the piece of file.
-	 * 
-	 * @param index
-	 * @return
-	 */
-	synchronized public Piece get(int index) {
-		Piece newDataSegment = new Piece(size);
-		if (bitFieldManager.getValueAtIndex(index) == 1) {
-			byte[] readBytes = new byte[size];
-			int newSize = 0;
-			// have to read this piece from my own output file.
-			try {
-				outStream.seek(index * size);
-				newSize = outStream.read(readBytes);
-			} catch (Exception e) {
-				e.printStackTrace();
-				return null;
-			}
-			if (newSize != size) {
-				byte[] newReadBytes = new byte[newSize];
-				if (newSize >= 0) {
-					System.arraycopy(readBytes, 0, newReadBytes, 0, newSize);
-				}
-				newDataSegment.setData(newReadBytes);
-			} else {
-				newDataSegment.setData(readBytes);
-			}
-			return newDataSegment;
-		} else {
-			return null;
-		}
-	}
-
-	/**
-	 * write piece
-	 * 
-	 * @param index
-	 * @param piece
-	 */
-	synchronized public void write(int index, Piece dataSegment) {
-		if (bitFieldManager.getValueAtIndex(index) == 0) {
-			try {
-				// have to write this piece in Piece object array
-				outStream.seek(index * size);
-				outStream.write(dataSegment.getData());
-				bitFieldManager.setValueAtIndex(index, true);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-
-	}
-
-	/**
-	 * the missing piece number.
-	 *
-	 * @return
-	 */
-	synchronized public int[] getMissingPieceNumberArray() {
-		int count = 0, missSize = 0;
-		// parse missing indexe count
-		while (true) {
-			if (count >= bitFieldManager.getNumberOfSegments())
-				break;
-			if (bitFieldManager.getValueAtIndex(count) == 0) {
-				missSize++;
-			}
-			count++;
-		}
-
-		// creating an array of count size
-		int[] missData = new int[missSize];
-		count = 0;
-		missSize = 0;
-		while (true) {
-			if (count >= bitFieldManager.getNumberOfSegments())
-				break;
-
-			if (bitFieldManager.getValueAtIndex(count) == 0) {
-				missData[missSize++] = count;
-			}
-			count++;
-		}
-		bitFieldManager.displayBitMap();
-
-		return missData;
-	}
-
-	/**
-	 * check file download completed
-	 * 
-	 * @return
-	 */
-	public synchronized boolean hasDownloadFileComplete() {
-		return bitFieldManager.checkIfFileIsDownloaded();
-	}
-
-	/**
-	 * getBitField
-	 * 
-	 * @return
-	 */
-	public BitFieldHelper getBitField() {
-		return bitFieldManager;
 	}
 }

@@ -10,6 +10,8 @@ import main.constants.Constants;
 
 /**
  * This class extracts information related to the common configuration file.
+ * 
+ * @author Sharan Sai Reddy Konda
  */
 public class CommonConfigHelper {
 
@@ -22,9 +24,11 @@ public class CommonConfigHelper {
     }
 
     /**
-     * Load and extract common configuration information from the specified common config file.
+     * Load and extract common configuration information from the specified common
+     * config file.
      * 
-     * @throws ExceptionInInitializerError if there is an error while loading the common config file
+     * @throws ExceptionInInitializerError if there is an error while loading the
+     *                                     common config file
      */
     private static void loadCommonConfigInfo() {
         try {
@@ -39,11 +43,12 @@ public class CommonConfigHelper {
                 // Store key-value pairs in the configMap
                 configMap.put(tokens[0].trim(), tokens[1].trim());
             }
-			bufferedReader.close();
+            bufferedReader.close();
 
         } catch (IOException e) {
             String errorMessage = "Error while loading the common config file. Message: " + e.getMessage();
-            System.out.printf("Exception occurred when extracting info from the common config file. Message: %s", e.getMessage());
+            System.out.printf("Exception occurred when extracting info from the common config file. Message: %s",
+                    e.getMessage());
             throw new ExceptionInInitializerError(errorMessage);
         }
     }

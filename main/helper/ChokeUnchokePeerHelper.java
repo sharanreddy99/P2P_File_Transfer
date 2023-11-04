@@ -12,7 +12,12 @@ import java.util.concurrent.TimeUnit;
 import main.PeerController;
 import main.constants.Constants;
 
-// This class runs the process of choking an unchoking at regular intervals for the given peer in order to change its neighboring peers.
+/**
+ * This class runs the process of choking an unchoking at regular intervals for
+ * the given peer in order to change its neighboring peers.
+ * 
+ * @author Sharan Sai Reddy Konda
+ */
 public class ChokeUnchokePeerHelper implements Runnable {
 
 	private LogHelper logger;
@@ -22,7 +27,7 @@ public class ChokeUnchokePeerHelper implements Runnable {
 	private ScheduledFuture<?> process = null;
 
 	/**
-	 * Returns the singleton instance of the choke unchoke manager
+	 * Returns the singleton instance of the choke unchoke helper
 	 * 
 	 * @param controller - main controller object that manages all other objects
 	 * @return null
@@ -109,8 +114,7 @@ public class ChokeUnchokePeerHelper implements Runnable {
 
 	/**
 	 * Cancels the repetitive process either due to completion of peer downloads or
-	 * any
-	 * other reason.
+	 * any other reason.
 	 * 
 	 * @return null
 	 */

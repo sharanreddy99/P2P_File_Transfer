@@ -13,6 +13,8 @@ import main.messageTypes.Peer;
 /**
  * This class extracts information related to all the peers from the peer config
  * file.
+ * 
+ * @author Sharan Sai Reddy Konda
  */
 public class PeerInfoHelper {
 

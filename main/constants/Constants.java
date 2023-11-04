@@ -22,6 +22,7 @@ public class Constants {
 	public static final String OPTIMISTIC_UNCHOKE_INTERVAL_LABEL = "OptimisticUnchokingInterval";
 	public static final String FILE_SIZE_LABEL = "FileSize";
 	public static final String PIECE_SIZE_LABEL = "PieceSize";
+	public static final String FILE_NAME_LABEL = "FileName";
 
 	// Handshake
 	public static final String HANDSHAKE_HEADER_STRING = "P2PFILESHARINGPROJ";
