@@ -117,15 +117,10 @@ public class PieceHelper {
 			return null;
 		}
 
-		// If we have the complete piece, updat ethe piece segment with it.
-		if (reqPieceSize == pieceSize) {
-			newDataSegment.setData(reqBytes);
-		} else {
-			// Reduce the size of the buffer when the piece size is small
-			byte[] newReqBytes = new byte[reqPieceSize];
-			System.arraycopy(reqBytes, 0, newReqBytes, 0, reqPieceSize);
-			newDataSegment.setData(newReqBytes);
-		}
+		// Store the fetched bytes inside the given piece.
+		byte[] newReqBytes = new byte[reqPieceSize];
+		System.arraycopy(reqBytes, 0, newReqBytes, 0, reqPieceSize);
+		newDataSegment.setData(newReqBytes);
 
 		return newDataSegment;
 	}
