@@ -1,4 +1,4 @@
-package main.handlers;
+package main.helper;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -7,8 +7,7 @@ import java.util.concurrent.BlockingQueue;
 
 import main.PeerController;
 import main.constants.Constants;
-import main.helper.CommonConfigHelper;
-import main.helper.BitFieldHelper;
+import main.handlers.PeerHandler;
 import main.messageTypes.PeerMessage;
 
 /**
@@ -16,7 +15,7 @@ import main.messageTypes.PeerMessage;
  * triggered based on the input request message
  * 
  */
-public class ChunkRequester implements Runnable {
+public class NextRequestHelper implements Runnable {
 	private BlockingQueue<PeerMessage> messageQueue;
 	private PeerHandler peerHandler;
 	private PeerController controller;
@@ -29,12 +28,12 @@ public class ChunkRequester implements Runnable {
 	 * @param peerHandler    - the peer handler object
 	 * @return
 	 */
-	public static ChunkRequester getNewInstance(PeerController peerController, PeerHandler peerHandler) {
+	public static NextRequestHelper getNewInstance(PeerController peerController, PeerHandler peerHandler) {
 		if (peerHandler == null || peerController == null) {
 			return null;
 		}
 
-		ChunkRequester requestSender = new ChunkRequester();
+		NextRequestHelper requestSender = new NextRequestHelper();
 		requestSender.setupNeighboringBitFieldManager(peerController, peerHandler);
 		return requestSender;
 	}

@@ -10,6 +10,7 @@ import main.PeerController;
 import main.constants.Constants;
 import main.helper.LogHelper;
 import main.helper.MessageHelper;
+import main.helper.NextRequestHelper;
 import main.messageTypes.HandshakeMessage;
 import main.messageTypes.PeerMessage;
 import main.messageTypes.PeerMessageType;
@@ -21,7 +22,7 @@ public class PeerHandler implements Runnable {
 	private PeerController controller; // controller
 	private ObjectInputStream objectInputStream; // neighbor peer input stream
 	private MessageHelper peerMessageSender; // peerMessageSender
-	private ChunkRequester chunkRequester;
+	private NextRequestHelper chunkRequester;
 	private LogHelper messageLoggerUtil; // log util
 
 	private String peerId; // peer id
@@ -88,7 +89,7 @@ public class PeerHandler implements Runnable {
 		}
 		new Thread(peerMessageSender).start();
 
-		chunkRequester = ChunkRequester.getNewInstance(controller, this);
+		chunkRequester = NextRequestHelper.getNewInstance(controller, this);
 		messageLoggerUtil = controller.getLogger();
 		return true;
 	}
