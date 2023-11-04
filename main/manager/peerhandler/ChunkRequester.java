@@ -5,9 +5,9 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import main.PeerController;
+import main.DataHandler.ManageBitFields;
 import main.constants.Constants;
 import main.helper.CommonConfigHelper;
-import main.Datahandler.ManageBitFields;
 import main.messageTypes.PeerMessage;
 
 public class ChunkRequester implements Runnable {

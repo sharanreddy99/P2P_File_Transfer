@@ -1,4 +1,4 @@
-package main.Datahandler;
+package main.DataHandler;
 
 import java.util.*;
 import java.io.*;

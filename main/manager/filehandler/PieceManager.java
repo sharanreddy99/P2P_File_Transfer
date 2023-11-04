@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.RandomAccessFile;
 
-import main.Datahandler.ManageBitFields;
+import main.DataHandler.ManageBitFields;
 import main.constants.Constants;
 import main.helper.CommonConfigHelper;
 import main.messageTypes.DataSegment;

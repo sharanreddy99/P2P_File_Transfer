@@ -1,6 +1,6 @@
 package main.messageTypes;
 
-import main.Datahandler.*;
+import main.DataHandler.*;
 
 /**
  * PeerMessage class represents various message types exchanged between peers in
