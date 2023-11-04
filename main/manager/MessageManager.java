@@ -4,7 +4,6 @@ import java.nio.ByteBuffer;
 
 import main.constants.Constants;
 import main.messageTypes.HandshakeMessage;
-import main.messageTypes.Peer2PeerMessage;
 import main.messageTypes.PeerMessage;
 
 /**
@@ -105,7 +104,7 @@ public class MessageManager {
 		return null;
 	}
 
-	public Peer2PeerMessage parsePeer2PeerMessage(byte[] rawData) {
+	public PeerMessage parsePeerMessage(byte[] rawData) {
 		return null;
 	}
 
@@ -123,42 +122,42 @@ public class MessageManager {
 		byte type = rawData[4];
 		switch (type) {
 			case Constants.TYPE_CHOKE_MESSAGE: {
-				Peer2PeerMessage message = Peer2PeerMessage.create();
+				PeerMessage message = PeerMessage.create();
 				message.setMessageType(Constants.TYPE_CHOKE_MESSAGE);
 				message.setLength(1);
 				message.setData(null);
 				return message;
 			}
 			case Constants.TYPE_UNCHOKE_MESSAGE: {
-				Peer2PeerMessage message = Peer2PeerMessage.create();
+				PeerMessage message = PeerMessage.create();
 				message.setMessageType(Constants.TYPE_UNCHOKE_MESSAGE);
 				message.setLength(1);
 				message.setData(null);
 				return message;
 			}
 			case Constants.TYPE_INTERESTED_MESSAGE: {
-				Peer2PeerMessage message = Peer2PeerMessage.create();
+				PeerMessage message = PeerMessage.create();
 				message.setMessageType(Constants.TYPE_INTERESTED_MESSAGE);
 				message.setLength(1);
 				message.setData(null);
 				return message;
 			}
 			case Constants.TYPE_NOT_INTERESTED_MESSAGE: {
-				Peer2PeerMessage message = Peer2PeerMessage.create();
+				PeerMessage message = PeerMessage.create();
 				message.setMessageType(Constants.TYPE_NOT_INTERESTED_MESSAGE);
 				message.setLength(1);
 				message.setData(null);
 				return message;
 			}
 			case Constants.TYPE_HAVE_MESSAGE: {
-				Peer2PeerMessage message = Peer2PeerMessage.create();
+				PeerMessage message = PeerMessage.create();
 				message.setLength(5);
 				message.setLength(Constants.TYPE_HAVE_MESSAGE);
 				message.setIndex(rawData[8]);
 				break;
 			}
 			case Constants.TYPE_REQUEST_MESSAGE: {
-				Peer2PeerMessage message = Peer2PeerMessage.create();
+				PeerMessage message = PeerMessage.create();
 				message.setLength(5);
 				message.setLength(Constants.TYPE_REQUEST_MESSAGE);
 				message.setIndex(rawData[8]);

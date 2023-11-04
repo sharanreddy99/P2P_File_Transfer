@@ -7,17 +7,17 @@ import java.util.concurrent.BlockingQueue;
 import main.PeerController;
 import main.constants.Constants;
 import main.helper.CommonConfigHelper;
-import main.manager.filehandler.BitFieldHandler;
-import main.messageTypes.Peer2PeerMessage;
+import main.Datahandler.ManageBitFields;
+import main.messageTypes.PeerMessage;
 
 public class ChunkRequester implements Runnable {
 	/* log */
 	private static final String LOGGER_PREFIX = ChunkRequester.class.getSimpleName();
 
-	private BlockingQueue<Peer2PeerMessage> messageQueue;
+	private BlockingQueue<PeerMessage> messageQueue;
 	private PeerController controller;
 	private PeerHandler peerHandler;
-	private BitFieldHandler neighborPeerBitFieldhandler = null;
+	private ManageBitFields neighborPeerBitFieldManager = null;
 
 	private boolean isShutDown = false;
 	int[] pieceIndexArray = new int[1000];
@@ -60,7 +60,7 @@ public class ChunkRequester implements Runnable {
 		int pieceSize = Integer.parseInt(CommonConfigHelper.getConfig("PieceSize"));
 		int numOfPieces = (int) Math
 				.ceil(Integer.parseInt(CommonConfigHelper.getConfig("FileSize")) / (pieceSize * 1.0));
-		neighborPeerBitFieldhandler = new BitFieldHandler(numOfPieces);
+		neighborPeerBitFieldManager = new ManageBitFields(numOfPieces);
 
 		return true;
 	}
@@ -89,22 +89,22 @@ public class ChunkRequester implements Runnable {
 				break;
 
 			try {
-				Peer2PeerMessage message = messageQueue.take();
+				PeerMessage message = messageQueue.take();
 				// System.out.println(LOGGER_PREFIX+": Received Message:
-				// "+Const.getMessageName(message.getType()));
+				// "+Const.getMessageName(message.getMessageType()));
 
-				Peer2PeerMessage requestMessage = Peer2PeerMessage.create();
+				PeerMessage requestMessage = PeerMessage.create();
 				requestMessage.setMessageType(Constants.TYPE_REQUEST_MESSAGE);
 
-				Peer2PeerMessage interestedMessage = Peer2PeerMessage.create();
+				PeerMessage interestedMessage = PeerMessage.create();
 				interestedMessage.setMessageType(Constants.TYPE_INTERESTED_MESSAGE);
 
-				if (message.getType() == Constants.TYPE_BITFIELD_MESSAGE) {
-					neighborPeerBitFieldhandler = message.getBitFieldHandler();
+				if (message.getMessageType() == Constants.TYPE_BITFIELD_MESSAGE) {
+					neighborPeerBitFieldManager = message.getManageBitFields();
 
 					int missingPieceIndex = getPieceNumberToBeRequested();
 					if (missingPieceIndex == -1) {
-						Peer2PeerMessage notInterestedMessage = Peer2PeerMessage.create();
+						PeerMessage notInterestedMessage = PeerMessage.create();
 						notInterestedMessage.setMessageType(Constants.TYPE_NOT_INTERESTED_MESSAGE);
 						peerHandler.sendNotInterestedMessage(notInterestedMessage);
 					} else {
@@ -116,20 +116,20 @@ public class ChunkRequester implements Runnable {
 					}
 				}
 
-				if (message.getType() == Constants.TYPE_HAVE_MESSAGE) {
+				if (message.getMessageType() == Constants.TYPE_HAVE_MESSAGE) {
 					int pieceIndex = message.getIndex();
 					try {
-						neighborPeerBitFieldhandler.setBitField(pieceIndex, true);
+						neighborPeerBitFieldManager.setValueAtIndex(pieceIndex, true);
 					} catch (Exception e) {
 						System.out.println(LOGGER_PREFIX + "[" + peerHandler.getPeerId()
 								+ "]: NULL POINTER EXCEPTION for piece Index" + pieceIndex + " ... "
-								+ neighborPeerBitFieldhandler);
+								+ neighborPeerBitFieldManager);
 						e.printStackTrace();
 					}
 
 					int missingPieceIndex = getPieceNumberToBeRequested();
 					if (missingPieceIndex == -1) {
-						Peer2PeerMessage notInterestedMessage = Peer2PeerMessage.create();
+						PeerMessage notInterestedMessage = PeerMessage.create();
 						notInterestedMessage.setMessageType(Constants.TYPE_NOT_INTERESTED_MESSAGE);
 						peerHandler.sendNotInterestedMessage(notInterestedMessage);
 					} else {
@@ -144,7 +144,7 @@ public class ChunkRequester implements Runnable {
 					}
 				}
 
-				if (message.getType() == Constants.TYPE_PIECE_MESSAGE) {
+				if (message.getMessageType() == Constants.TYPE_PIECE_MESSAGE) {
 					// supposed to send request message only after piece for previous request
 					// message.
 					int missingPieceIndex = getPieceNumberToBeRequested();
@@ -159,7 +159,7 @@ public class ChunkRequester implements Runnable {
 							peerHandler.sendRequestMessage(requestMessage);
 						}
 					}
-				} else if (message.getType() == Constants.TYPE_UNCHOKE_MESSAGE) {
+				} else if (message.getMessageType() == Constants.TYPE_UNCHOKE_MESSAGE) {
 					// supposed to send request message after receiving unchoke message
 					int missingPieceIndex = getPieceNumberToBeRequested();
 					peerHandler.setPreviousMessageReceived(false);
@@ -185,10 +185,11 @@ public class ChunkRequester implements Runnable {
 	 * @return
 	 */
 	public int getPieceNumberToBeRequested() {
-		BitFieldHandler thisPeerBitFiledHandler = controller.getBitFieldMessage().getBitFieldHandler();
+		ManageBitFields thisPeerBitFiledHandler = controller.getBitFieldMessage().getManageBitFields();
 		int count = 0;
-		for (int i = 0; i < neighborPeerBitFieldhandler.getSize() && count < pieceIndexArray.length; i++) {
-			if (thisPeerBitFiledHandler.getBitField(i) || !neighborPeerBitFieldhandler.getBitField(i)) {
+		for (int i = 0; i < neighborPeerBitFieldManager.getNumberOfSegments() && count < pieceIndexArray.length; i++) {
+			if (thisPeerBitFiledHandler.getValueAtIndex(i) == 1
+					|| neighborPeerBitFieldManager.getValueAtIndex(i) == 0) {
 				continue;
 			}
 			pieceIndexArray[count] = i;
@@ -209,7 +210,7 @@ public class ChunkRequester implements Runnable {
 	 * @param message
 	 * @throws InterruptedException
 	 */
-	public void addMessage(Peer2PeerMessage message) throws InterruptedException {
+	public void addMessage(PeerMessage message) throws InterruptedException {
 		if (messageQueue == null) {
 			throw new IllegalStateException("");
 		} else {
@@ -222,6 +223,6 @@ public class ChunkRequester implements Runnable {
 	 * @return
 	 */
 	public boolean isNeighborPeerDownloadedFile() {
-		return neighborPeerBitFieldhandler != null && neighborPeerBitFieldhandler.isFileDownloadComplete();
+		return neighborPeerBitFieldManager != null && neighborPeerBitFieldManager.checkIfFileIsDownloaded();
 	}
 }

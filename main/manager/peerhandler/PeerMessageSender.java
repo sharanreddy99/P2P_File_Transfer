@@ -5,14 +5,14 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import main.constants.Constants;
-import main.messageTypes.PeerMessage;
+import main.messageTypes.PeerMessageType;
 
 public class PeerMessageSender implements Runnable {
 	/* log */
 	private static final String LOGGER_PREFIX = PeerMessageSender.class.getSimpleName();
 
 	private ObjectOutputStream outputStream = null;
-	private BlockingQueue<PeerMessage> messageQueue;
+	private BlockingQueue<PeerMessageType> messageQueue;
 	private boolean shutDown = false;
 
 	/**
@@ -44,7 +44,7 @@ public class PeerMessageSender implements Runnable {
 		return true;
 	}
 
-	public void printMessageDetails(PeerMessage message) {
+	public void printMessageDetails(PeerMessageType message) {
 		// if(message.getType() != Const.TYPE_HAVE_MESSAGE && message.getType() !=
 		// Const.TYPE_NOT_INTERESTED_MESSAGE && message.getType() !=
 		// Const.TYPE_INTERESTED_MESSAGE){
@@ -76,7 +76,7 @@ public class PeerMessageSender implements Runnable {
 			if (shutDown)
 				break;
 			try {
-				PeerMessage message = messageQueue.take();
+				PeerMessageType message = messageQueue.take();
 				outputStream.writeUnshared(message);
 				outputStream.flush();
 				printMessageDetails(message);
@@ -93,7 +93,7 @@ public class PeerMessageSender implements Runnable {
 	 * @param message
 	 * @throws InterruptedException
 	 */
-	public void sendMessage(PeerMessage message) throws InterruptedException {
+	public void sendMessage(PeerMessageType message) throws InterruptedException {
 		if (messageQueue != null) {
 			messageQueue.put(message);
 		} else {

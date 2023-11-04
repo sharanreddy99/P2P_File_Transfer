@@ -16,9 +16,9 @@ import main.helper.OptimisticUnchokePeerHelper;
 import main.helper.PeerInfoHelper;
 import main.manager.filehandler.PieceManager;
 import main.manager.peerhandler.PeerHandler;
-import main.messageTypes.Peer2PeerMessage;
-import main.messageTypes.PeerInfo;
-import main.messageTypes.Piece;
+import main.messageTypes.PeerMessage;
+import main.messageTypes.Peer;
+import main.messageTypes.DataSegment;
 
 /**
  * Controller
@@ -72,7 +72,7 @@ public class PeerController {
 		chokeUnchokeManager = ChokeUnchokePeerHelper.returnSingletonInstance(this);
 		if (chokeUnchokeManager != null) {
 			int chokeUnchokeInterval = Integer
-					.parseInt(CommonConfigHelper.getConfig(Constants.CHOKE_UNCHOKE_INTERVAL));
+					.parseInt(CommonConfigHelper.getConfig(Constants.CHOKE_UNCHOKE_INTERVAL_LABEL));
 			chokeUnchokeManager.start(0, chokeUnchokeInterval);
 
 		}
@@ -80,7 +80,7 @@ public class PeerController {
 		optimisticUnchokeManager = OptimisticUnchokePeerHelper.returnSingletonInstance(this);
 		if (optimisticUnchokeManager != null) {
 			int optimisticUnchokeInterval = Integer
-					.parseInt(CommonConfigHelper.getConfig(Constants.OPTIMISTIC_UNCHOKE_INTERVAL));
+					.parseInt(CommonConfigHelper.getConfig(Constants.OPTIMISTIC_UNCHOKE_INTERVAL_LABEL));
 			optimisticUnchokeManager.start(0, optimisticUnchokeInterval);
 		}
 	}
@@ -89,10 +89,10 @@ public class PeerController {
 	 * Connect to previous peer neighbors as per the project requirement.
 	 */
 	private void connectToPreviousPeer() {
-		HashMap<String, PeerInfo> peerInfoMap = peerInfoHelperObj.getPeerInfoMap();
+		HashMap<String, Peer> peerInfoMap = peerInfoHelperObj.getPeerMap();
 
 		try {
-			for (Map.Entry<String, PeerInfo> set : peerInfoMap.entrySet()) {
+			for (Map.Entry<String, Peer> set : peerInfoMap.entrySet()) {
 				if (Integer.parseInt(set.getKey()) < Integer.parseInt(peerId)) {
 					makeConnection(peerInfoMap.get(set.getKey()));
 				}
@@ -111,7 +111,7 @@ public class PeerController {
 	 *
 	 * @param peerInfo
 	 */
-	private void makeConnection(PeerInfo peerInfo) throws IOException {
+	private void makeConnection(Peer peerInfo) throws IOException {
 		String address = peerInfo.getAddress();
 		int port = peerInfo.getPort();
 
@@ -130,8 +130,8 @@ public class PeerController {
 
 	private boolean configControler() {
 		peerInfoHelperObj = PeerInfoHelper.returnSingletonInstance(); // get log instance
-		PeerInfo currPeer = peerInfoHelperObj.getPeerObjectByKey(peerId);
-		boolean isFileExists = currPeer != null && currPeer.isFileExist();
+		Peer currPeer = peerInfoHelperObj.getPeerObjectByKey(peerId);
+		boolean isFileExists = currPeer != null && currPeer.hasFile();
 		this.peerHandlers = new ArrayList<PeerHandler>();
 
 		// configure piece manager based on whether the peer has the target file or not
@@ -163,7 +163,7 @@ public class PeerController {
 			return;
 		}
 
-		if (peerInfoHelperObj.getPeerInfoMap().size() == peerCompleteMap.size()) {
+		if (peerInfoHelperObj.getPeerMap().size() == peerCompleteMap.size()) {
 			this.terminateObjects();
 		}
 	}
@@ -194,8 +194,8 @@ public class PeerController {
 	 * 
 	 * @return
 	 */
-	public synchronized Peer2PeerMessage getBitFieldMessage() {
-		Peer2PeerMessage message = Peer2PeerMessage.create();
+	public synchronized PeerMessage getBitFieldMessage() {
+		PeerMessage message = PeerMessage.create();
 
 		message.setMessageType(Constants.TYPE_BITFIELD_MESSAGE);
 		message.setBitFieldHandler(pieceManager.getBitField());
@@ -225,7 +225,7 @@ public class PeerController {
 	public void setChokePeers(ArrayList<String> peerList) {
 		chokedPeers = peerList;
 
-		Peer2PeerMessage chokeMessage = Peer2PeerMessage.create();
+		PeerMessage chokeMessage = PeerMessage.create();
 		chokeMessage.setMessageType(Constants.TYPE_CHOKE_MESSAGE);
 
 		for (int i = 0; i < peerList.size(); i++) {
@@ -252,7 +252,7 @@ public class PeerController {
 	 * @param peerList
 	 */
 	public void unChokePeers(ArrayList<String> peerList) {
-		Peer2PeerMessage unChokeMessage = Peer2PeerMessage.create();
+		PeerMessage unChokeMessage = PeerMessage.create();
 		unChokeMessage.setMessageType(Constants.TYPE_UNCHOKE_MESSAGE);
 		// System.out.println(LOGGER_PREFIX+" : Sending UNCHOKE message to peers...");
 		for (int i = 0; i < peerList.size(); i++) {
@@ -281,7 +281,7 @@ public class PeerController {
 	 * @return null
 	 */
 	public void optimisticallyUnChokePeers(String contenderID) {
-		Peer2PeerMessage unChokeMessage = Peer2PeerMessage.create();
+		PeerMessage unChokeMessage = PeerMessage.create();
 		unChokeMessage.setMessageType(Constants.TYPE_UNCHOKE_MESSAGE);
 
 		logger.logMessage(String.format(Constants.OPTIMISTICALLY_UNCHOKE_LOG_MESSAGE, peerId, contenderID));
@@ -301,11 +301,11 @@ public class PeerController {
 	 * @param pieceMessage
 	 * @param sourcePeerID
 	 */
-	public synchronized void insertPiece(Peer2PeerMessage pieceMessage, String sourcePeerID) {
+	public synchronized void insertPiece(PeerMessage pieceMessage, String sourcePeerID) {
 		pieceManager.write(pieceMessage.getIndex(), pieceMessage.getData());
 		logger.logMessage("Peer [" + instance.getPeerId() + "] has downloaded the piece [" + pieceMessage.getIndex()
 				+ "] from [" + sourcePeerID + "]. Now the number of pieces it has is "
-				+ (pieceManager.getBitField().getNoOfPieces()));
+				+ (pieceManager.getBitField().getCountOfDownloadedSegments()));
 	}
 
 	/**
@@ -314,11 +314,11 @@ public class PeerController {
 	 * @param index
 	 * @return
 	 */
-	public Peer2PeerMessage genPieceMessage(int index) {
-		Piece piece = pieceManager.get(index);
-		if (piece != null) {
-			Peer2PeerMessage message = Peer2PeerMessage.create();
-			message.setData(piece);
+	public PeerMessage genPieceMessage(int index) {
+		DataSegment dataSegment = pieceManager.get(index);
+		if (dataSegment != null) {
+			PeerMessage message = PeerMessage.create();
+			message.setData(dataSegment);
 			message.setIndex(index);
 			message.setMessageType(Constants.TYPE_PIECE_MESSAGE);
 			return message;
@@ -333,7 +333,7 @@ public class PeerController {
 	 * @param fromPeerID
 	 */
 	public void sendHaveMessage(int pieceIndex, String fromPeerID) {
-		Peer2PeerMessage haveMessage = Peer2PeerMessage.create();
+		PeerMessage haveMessage = PeerMessage.create();
 		haveMessage.setIndex(pieceIndex);
 		haveMessage.setMessageType(Constants.TYPE_HAVE_MESSAGE);
 
@@ -358,7 +358,7 @@ public class PeerController {
 		}
 
 		// Create a shutdown mesage
-		Peer2PeerMessage shutdownMessage = Peer2PeerMessage.create();
+		PeerMessage shutdownMessage = PeerMessage.create();
 		shutdownMessage.setMessageType(Constants.SHUTDOWN_MESSAGE);
 
 		// Mark that the current peer has successfully downloaded the file.
@@ -376,7 +376,7 @@ public class PeerController {
 	 * @return
 	 */
 	public int getMaxNewConnectionsCount() {
-		HashMap<String, PeerInfo> neighborPeerMap = peerInfoHelperObj.getPeerInfoMap();
+		HashMap<String, Peer> neighborPeerMap = peerInfoHelperObj.getPeerMap();
 		Set<String> peerIDList = neighborPeerMap.keySet();
 
 		int count = 0;
