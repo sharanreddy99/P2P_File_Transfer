@@ -1,5 +1,12 @@
 package main.constants;
 
+/**
+ * This class contains all the constants for the application
+ * 
+ * @author Sharan Sai Reddy Konda
+ * @author Bhavan Voram
+ * @author Adithya KNG
+ */
 public class Constants {
 	// RemotePeers
 	public static final int SSH_TIMEOUT = 5000; // SSH timeout in milliseconds

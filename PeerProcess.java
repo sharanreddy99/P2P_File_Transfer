@@ -1,7 +1,10 @@
 import main.PeerController;
 
 /**
- * test
+ * Main class to start the PeerProcess. The peer ID is given as a command line
+ * argument.
+ * 
+ * @author Bhavan Voram
  */
 public class PeerProcess {
 	public static void main(String args[]) {

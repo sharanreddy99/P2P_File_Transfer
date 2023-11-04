@@ -10,7 +10,9 @@ import main.helper.PeerInfoHelper;
 import main.messageTypes.Peer;
 
 /**
- * PeerServer
+ * This class implements the PeerServer class
+ * 
+ * @author Bhavan Voram
  */
 public class PeerServer implements Runnable {
 	private static volatile PeerServer instance = null;
@@ -28,13 +30,12 @@ public class PeerServer implements Runnable {
 	}
 
 	/**
-	 * returns the peerServer instance
+	 * Returns the singleton instance of the Peer Server
 	 * 
-	 * @param peerID
-	 * @param controller
-	 * @return
+	 * @param peerID     - peerID of the current peer
+	 * @param controller - main controller object that manages all other objects
+	 * @return null
 	 */
-
 	public static PeerServer returnSingletonInstance(String peerID, PeerController controller) {
 		if (instance == null) {
 			instance = new PeerServer(peerID, controller);
