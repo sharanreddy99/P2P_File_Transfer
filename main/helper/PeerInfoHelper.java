@@ -11,7 +11,8 @@ import main.constants.Constants;
 import main.messageTypes.Peer;
 
 /**
- * This class extracts information related to all the peers from the peer config file.
+ * This class extracts information related to all the peers from the peer config
+ * file.
  */
 public class PeerInfoHelper {
 
@@ -19,7 +20,8 @@ public class PeerInfoHelper {
     private static PeerInfoHelper instance = null;
 
     /**
-     * This function returns a singleton PeerInfoHelper instance which has all the peer info extracted from the config file.
+     * This function returns a singleton PeerInfoHelper instance which has all the
+     * peer info extracted from the config file.
      * 
      * @return PeerInfoHelper
      */
@@ -32,14 +34,16 @@ public class PeerInfoHelper {
     }
 
     /**
-     * This function extracts peer configuration info from the specified peer config file.
+     * This function extracts peer configuration info from the specified peer config
+     * file.
      * 
-     * @return boolean indicating whether the extraction of peer info was successful or not
+     * @return boolean indicating whether the extraction of peer info was successful
+     *         or not
      */
     public boolean configPeerInfo() {
         peerInfoMap = new LinkedHashMap<>();
         try {
-            FileInputStream fileInputStream = new FileInputStream("PeerInfo.cfg");
+            FileInputStream fileInputStream = new FileInputStream(Constants.PEER_INFO_FILE);
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
 
             String row;
@@ -53,7 +57,8 @@ public class PeerInfoHelper {
             bufferedReader.close();
             fileInputStream.close();
         } catch (IOException e) {
-            System.out.printf("Exception occurred when extracting info from the peer config file. Message: %s", e.getMessage());
+            System.out.printf("Exception occurred when extracting info from the peer config file. Message: %s",
+                    e.getMessage());
             return false;
         }
 

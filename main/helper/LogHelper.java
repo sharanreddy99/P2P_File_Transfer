@@ -35,13 +35,13 @@ public class LogHelper {
      * Create the log file and initialize the write handler object.
      */
     private void createLogFile() {
-        String directory = "" + Constants.LOG_DIRECTORY_NAME;
+        String directory = "" + Constants.LOG_FILE_DIRECTORY_NAME;
         File file = new File(directory);
         if (!file.exists()) {
             file.mkdirs();
         }
 
-        this.fileName = String.format("%s/%s%s.log", directory, Constants.LOG_FILE_PREFIX, peerID);
+        this.fileName = String.format("%s/%s%s.log", directory, Constants.LOG_FILE_NAME_PREFIX, peerID);
         try {
             this.logWriter = new BufferedWriter(new FileWriter(this.fileName));
         } catch (IOException e) {
@@ -60,7 +60,8 @@ public class LogHelper {
             this.logWriter.write(String.format("[%s]: %s\n", date, message) + "\n");
             this.logWriter.flush();
         } catch (IOException e) {
-            System.out.printf("Exception occurred while writing to log file: %s. Message: %s", this.fileName, e.getMessage());
+            System.out.printf("Exception occurred while writing to log file: %s. Message: %s", this.fileName,
+                    e.getMessage());
         }
     }
 

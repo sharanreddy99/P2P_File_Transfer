@@ -2,14 +2,30 @@ package main.constants;
 
 public class Constants {
 	// RemotePeers
-	public static final int SSH_TIMEOUT = 5000;
-	public static final boolean IS_LOCAL_HOST = true;
+	public static final int SSH_TIMEOUT = 5000; // SSH timeout in milliseconds
+	public static final boolean IS_LOCAL_HOST = true; // A boolean indicating if the host is local
+
+	// Logger Configuration
+	public static final String LOG_FILE_DIRECTORY_NAME = "log";
+	public static final String LOG_FILE_NAME_PREFIX = "log_peer_";
 
 	// LogMessageFormats
 	public static final String CHOKE_UNCHOKE_LOG_MESSAGE = "Peer [%s] has the preferred neighbors %s";
 	public static final String FILE_DOWNLOADED_LOG_MESSAGE = "Peer [%s] has downloaded the complete file";
 	public static final String OPTIMISTICALLY_UNCHOKE_LOG_MESSAGE = "Peer [%s] has the optimistically unchoked neighbor [%s]";
 
+	// Common Config
+	public static final String LOGGER_NAME = "logger.name";
+	public static final String CONFIGURATION_FILE = "Common.cfg";
+	public static final String PEER_INFO_FILE = "PeerInfo.cfg";
+	public static final String CHOKE_UNCHOKE_INTERVAL = "UnchokingInterval";
+	public static final String OPTIMISTIC_UNCHOKE_INTERVAL = "OptimisticUnchokingInterval";
+	public static final String FILE_SIZE = "FileSize";
+
+	// Handshake
+	public static final String HANDSHAKE_HEADER_STRING = "P2PFILESHARINGPROJ";
+
+	/* TODO from below */
 	public static final int RAW_DATA_SIZE = 1000;
 	public static final int MAX_MESSAGE_SIZE = 40000;
 
@@ -28,21 +44,6 @@ public class Constants {
 	public static final byte SHUTDOWN_MESSAGE = 100;
 
 	public static final int SENDER_QUEUE_SIZE = 100;
-
-	/* log directory and name */
-	public static final String LOG_FILE_DIRECTORY_NAME = "log";
-	public static final String LOG_FILE_NAME_PREFIX = "log_peer_";
-
-	/* handshake header */
-	public static final String HANDSHAKE_HEADER_STRING = "P2PFILESHARINGPROJ";
-
-	/* config logMessage( */
-	public static final String LOGGER_NAME = "logger.name";
-	public static final String CONFIGURATION_FILE = "Common.cfg";
-	public static final String PEER_INFO_FILE = "PeerInfo.cfg";
-	public static final String CHOKE_UNCHOKE_INTERVAL = "UnchokingInterval";
-	public static final String OPTIMISTIC_UNCHOKE_INTERVAL = "OptimisticUnchokingInterval";
-	public static final String FILE_SIZE = "FileSize";
 
 	/**
 	 * getMessage
