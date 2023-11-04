@@ -199,7 +199,7 @@ public class PeerHandler implements Runnable {
 		messageLoggerUtil.logMessage("Peer [" + controller.getPeerId() + "] is unchoked by [" + peerId + "]");
 		isChokedByNeighborPeer = false;
 		try {
-			chunkRequester.addMessage(unchokeMessage);
+			chunkRequester.addPeerMessageToQueue(unchokeMessage);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -216,7 +216,7 @@ public class PeerHandler implements Runnable {
 		downloadSize += messge.getData().getDataLength();
 		setPreviousMessageReceived(true);
 		try {
-			chunkRequester.addMessage(messge);
+			chunkRequester.addPeerMessageToQueue(messge);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -239,7 +239,7 @@ public class PeerHandler implements Runnable {
 	 */
 	private void processBitFieldMessage(PeerMessage message) {
 		try {
-			chunkRequester.addMessage(message);
+			chunkRequester.addPeerMessageToQueue(message);
 			if (isHandshakeReceived && isHandShakeSent && !isChunkStarted()) {
 				new Thread(chunkRequester).start();
 				startMeasuringDownloadTime();
@@ -301,7 +301,7 @@ public class PeerHandler implements Runnable {
 		messageLoggerUtil.logMessage("Peer [" + controller.getPeerId() + "] recieved the 'have' message from [" + peerId
 				+ "] for the piece" + message.getIndex());
 		try {
-			chunkRequester.addMessage(message);
+			chunkRequester.addPeerMessageToQueue(message);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -26,6 +26,10 @@ public class PeerMessage implements PeerMessageType {
         messageNumber = ++COUNT;
     }
 
+    private PeerMessage(int messageType) {
+        this.messageType = messageType;
+    }
+
     /**
      * Static factory method to create a new PeerMessage.
      *
@@ -33,6 +37,15 @@ public class PeerMessage implements PeerMessageType {
      */
     public static PeerMessage create() {
         return new PeerMessage();
+    }
+
+    /**
+     * Static factory method to create a new PeerMessage.
+     *
+     * @return A new PeerMessage instance
+     */
+    public static PeerMessage create(int messageType) {
+        return new PeerMessage(messageType);
     }
 
     /**

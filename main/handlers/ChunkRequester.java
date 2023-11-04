@@ -1,5 +1,6 @@
 package main.handlers;
 
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -10,219 +11,255 @@ import main.helper.CommonConfigHelper;
 import main.helper.BitFieldHelper;
 import main.messageTypes.PeerMessage;
 
+/**
+ * This class handles the next sequence of messages that are needed to be
+ * triggered based on the input request message
+ * 
+ */
 public class ChunkRequester implements Runnable {
-	/* log */
-	private static final String LOGGER_PREFIX = ChunkRequester.class.getSimpleName();
-
 	private BlockingQueue<PeerMessage> messageQueue;
-	private PeerController controller;
 	private PeerHandler peerHandler;
-	private BitFieldHelper neighborPeerBitFieldManager = null;
-
-	private boolean isShutDown = false;
-	int[] pieceIndexArray = new int[1000];
+	private PeerController controller;
+	private BitFieldHelper neighborPeerBFH;
 
 	/**
-	 * get new instance of ChunkRequester
+	 * This function returns the NextRequestHandler obj
 	 * 
-	 * @param controller
-	 * @param peerHandler
+	 * @param peerController - the main controller object
+	 * @param peerHandler    - the peer handler object
 	 * @return
 	 */
-	public static ChunkRequester getNewInstance(PeerController controller, PeerHandler peerHandler) {
-		// System.out.println(LOGGER_PREFIX+" Initializing ChunkRequester");
-
-		if (controller == null || peerHandler == null) {
+	public static ChunkRequester getNewInstance(PeerController peerController, PeerHandler peerHandler) {
+		if (peerHandler == null || peerController == null) {
 			return null;
 		}
 
 		ChunkRequester requestSender = new ChunkRequester();
-		if (!requestSender.init()) {
-			requestSender.destroy();
-			return null;
-		}
-
-		requestSender.controller = controller;
-		requestSender.peerHandler = peerHandler;
-
-		// System.out.println(LOGGER_PREFIX+" Initialized ChunkRequester successfully");
-
+		requestSender.setupNeighboringBitFieldManager(peerController, peerHandler);
 		return requestSender;
 	}
 
 	/**
-	 * init ChunkRequester
+	 * This function sets up the message queue and also the neighboring bitfield
+	 * helper
 	 * 
-	 * @return
+	 * @return null
 	 */
-	private boolean init() {
+	private void setupNeighboringBitFieldManager(PeerController peerController, PeerHandler peerHandler) {
 		messageQueue = new ArrayBlockingQueue<>(Constants.SENDER_QUEUE_SIZE);
-		int pieceSize = Integer.parseInt(CommonConfigHelper.getConfig("PieceSize"));
+		int pieceSize = Integer.parseInt(CommonConfigHelper.getConfig(Constants.PIECE_SIZE_LABEL));
+		float pieceSizeFloat = (float) pieceSize;
 		int numOfPieces = (int) Math
-				.ceil(Integer.parseInt(CommonConfigHelper.getConfig("FileSize")) / (pieceSize * 1.0));
-		neighborPeerBitFieldManager = new BitFieldHelper(numOfPieces);
+				.ceil(Float.parseFloat(CommonConfigHelper.getConfig(Constants.FILE_SIZE_LABEL)) / pieceSizeFloat);
 
-		return true;
+		neighborPeerBFH = new BitFieldHelper(numOfPieces);
+		this.peerHandler = peerHandler;
+		this.controller = peerController;
 	}
 
 	/**
-	 * close ChunkRequester
-	 */
-	public void destroy() {
-		if (messageQueue != null && messageQueue.size() != 0) {
-			messageQueue.clear();
-		}
-		messageQueue = null;
-	}
-
-	/**
-	 * run
+	 * This function begins the thread execution which reads various message
+	 * requests sent to the given peer from the queue and processes the requests by
+	 * sending new message requests according to the algorithm
+	 * 
+	 * @return null
 	 */
 	public void run() {
-		if (messageQueue == null) {
-			throw new IllegalStateException(LOGGER_PREFIX
-					+ ": This object is not initialized properly. This might be result of calling deinit() method");
-		}
-
-		while (true) {
-			if (isShutDown)
-				break;
-
-			try {
+		try {
+			for (;;) {
 				PeerMessage message = messageQueue.take();
-				// System.out.println(LOGGER_PREFIX+": Received Message:
-				// "+Const.getMessageName(message.getMessageType()));
+				switch (message.getMessageType()) {
+					case Constants.TYPE_BITFIELD_MESSAGE:
+						handleBitFieldRequest(message);
+						break;
 
-				PeerMessage requestMessage = PeerMessage.create();
-				requestMessage.setMessageType(Constants.TYPE_REQUEST_MESSAGE);
+					case Constants.TYPE_HAVE_MESSAGE:
+						handleHaveRequest(message);
+						break;
 
-				PeerMessage interestedMessage = PeerMessage.create();
-				interestedMessage.setMessageType(Constants.TYPE_INTERESTED_MESSAGE);
+					case Constants.TYPE_PIECE_MESSAGE:
+						handlePieceRequest();
+						break;
 
-				if (message.getMessageType() == Constants.TYPE_BITFIELD_MESSAGE) {
-					neighborPeerBitFieldManager = message.getManageBitFields();
-
-					int missingPieceIndex = getPieceNumberToBeRequested();
-					if (missingPieceIndex == -1) {
-						PeerMessage notInterestedMessage = PeerMessage.create();
-						notInterestedMessage.setMessageType(Constants.TYPE_NOT_INTERESTED_MESSAGE);
-						peerHandler.sendNotInterestedMessage(notInterestedMessage);
-					} else {
-						interestedMessage.setIndex(missingPieceIndex);
-						peerHandler.sendInterestedMessage(interestedMessage);
-
-						requestMessage.setIndex(missingPieceIndex);
-						peerHandler.sendRequestMessage(requestMessage);
-					}
+					case Constants.TYPE_UNCHOKE_MESSAGE:
+						handleUnchokeRequest();
+						break;
+					default:
+						break;
 				}
 
-				if (message.getMessageType() == Constants.TYPE_HAVE_MESSAGE) {
-					int pieceIndex = message.getIndex();
-					try {
-						neighborPeerBitFieldManager.setValueAtIndex(pieceIndex, true);
-					} catch (Exception e) {
-						System.out.println(LOGGER_PREFIX + "[" + peerHandler.getPeerId()
-								+ "]: NULL POINTER EXCEPTION for piece Index" + pieceIndex + " ... "
-								+ neighborPeerBitFieldManager);
-						e.printStackTrace();
-					}
-
-					int missingPieceIndex = getPieceNumberToBeRequested();
-					if (missingPieceIndex == -1) {
-						PeerMessage notInterestedMessage = PeerMessage.create();
-						notInterestedMessage.setMessageType(Constants.TYPE_NOT_INTERESTED_MESSAGE);
-						peerHandler.sendNotInterestedMessage(notInterestedMessage);
-					} else {
-						if (peerHandler.isPreviousMessageReceived()) {
-							peerHandler.setPreviousMessageReceived(false);
-							interestedMessage.setIndex(missingPieceIndex);
-							peerHandler.sendInterestedMessage(interestedMessage);
-
-							requestMessage.setIndex(missingPieceIndex);
-							peerHandler.sendRequestMessage(requestMessage);
-						}
-					}
-				}
-
-				if (message.getMessageType() == Constants.TYPE_PIECE_MESSAGE) {
-					// supposed to send request message only after piece for previous request
-					// message.
-					int missingPieceIndex = getPieceNumberToBeRequested();
-
-					if (missingPieceIndex != -1) {
-						if (peerHandler.isPreviousMessageReceived()) {
-							peerHandler.setPreviousMessageReceived(false);
-							interestedMessage.setIndex(missingPieceIndex);
-							peerHandler.sendInterestedMessage(interestedMessage);
-
-							requestMessage.setIndex(missingPieceIndex);
-							peerHandler.sendRequestMessage(requestMessage);
-						}
-					}
-				} else if (message.getMessageType() == Constants.TYPE_UNCHOKE_MESSAGE) {
-					// supposed to send request message after receiving unchoke message
-					int missingPieceIndex = getPieceNumberToBeRequested();
-					peerHandler.setPreviousMessageReceived(false);
-					if (missingPieceIndex != -1) {
-						interestedMessage.setIndex(missingPieceIndex);
-						peerHandler.sendInterestedMessage(interestedMessage);
-
-						requestMessage.setIndex(missingPieceIndex);
-						peerHandler.sendRequestMessage(requestMessage);
-					}
-				}
-
-			} catch (Exception e) {
-				e.printStackTrace();
-				break;
 			}
+		} catch (Exception e) {
+			System.out.println(
+					"Exception occured when processing message requests inside the class. Message: " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
 
 	/**
-	 * getPieceNumberToBeRequested
+	 * handles the bitfield input request
 	 * 
-	 * @return
+	 * @param message - one of the 8 message types
 	 */
-	public int getPieceNumberToBeRequested() {
-		BitFieldHelper thisPeerBitFiledHandler = controller.getBitFieldMessage().getManageBitFields();
-		int count = 0;
-		for (int i = 0; i < neighborPeerBitFieldManager.getNumberOfSegments() && count < pieceIndexArray.length; i++) {
-			if (thisPeerBitFiledHandler.getValueAtIndex(i) == 1
-					|| neighborPeerBitFieldManager.getValueAtIndex(i) == 0) {
-				continue;
+	public void handleBitFieldRequest(PeerMessage message) {
+		neighborPeerBFH = message.getManageBitFields();
+		int missingPieceIdx = getMissingPieceRandomIdx();
+
+		// MissingPieceIdx = -1 indicates that the current peer has no missing pieces to
+		// download from the neighbors. Hence in this case, we will be sending not
+		// interested message and terminating the peering request
+		if (missingPieceIdx != -1) {
+			sendInterestedMessage(missingPieceIdx);
+		} else {
+			peerHandler.sendNotInterestedMessage(PeerMessage.create(Constants.TYPE_NOT_INTERESTED_MESSAGE));
+		}
+	}
+
+	/**
+	 * handles the have input request
+	 * 
+	 * @param message - one of the 8 message types
+	 */
+	public void handleHaveRequest(PeerMessage message) {
+		int pieceIdx = message.getIndex();
+		int randomPieceIdx = getMissingPieceRandomIdx();
+
+		try {
+			neighborPeerBFH.setValueAtIndex(pieceIdx, true);
+			if (isCurrentPeerMissingThePiece(pieceIdx)) {
+				if (peerHandler.isPreviousMessageReceived()) {
+					peerHandler.setPreviousMessageReceived(false);
+					sendInterestedMessage(pieceIdx);
+				}
+			} else if (randomPieceIdx != -1) {
+				if (peerHandler.isPreviousMessageReceived()) {
+					peerHandler.setPreviousMessageReceived(false);
+					sendInterestedMessage(randomPieceIdx);
+				}
+			} else {
+				peerHandler.sendNotInterestedMessage(PeerMessage.create(Constants.TYPE_NOT_INTERESTED_MESSAGE));
 			}
-			pieceIndexArray[count] = i;
-			count++;
+		} catch (Exception e) {
+			System.out.println(
+					"Exception occured when handling the `have` request.  Message: "
+							+ e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * handles the piece input request
+	 */
+	public void handlePieceRequest() {
+		try {
+			int missingPieceIdx = getMissingPieceRandomIdx();
+			if (missingPieceIdx != -1 && peerHandler.isPreviousMessageReceived()) {
+				sendInterestedMessage(missingPieceIdx);
+			}
+		} catch (Exception e) {
+			System.out.println(
+					"Exception occured when handling the `piece` request. Message: "
+							+ e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * handles the unchoke input request
+	 */
+	private void handleUnchokeRequest() {
+		try {
+			int missingPieceIdx = getMissingPieceRandomIdx();
+			peerHandler.setPreviousMessageReceived(false);
+			if (missingPieceIdx != -1) {
+				sendInterestedMessage(missingPieceIdx);
+			}
+		} catch (Exception e) {
+			System.out.println(
+					"Exception occured when handling the `unchoke` request. Message: "
+							+ e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Triggers the interested message for the neigboring peer
+	 * 
+	 * @param pieceIdx - specifies the index of the piece
+	 */
+	private void sendInterestedMessage(int pieceIdx) {
+		// Send interested message for the randomly found missing piece
+		PeerMessage newMessage = PeerMessage.create(Constants.TYPE_INTERESTED_MESSAGE);
+		newMessage.setIndex(pieceIdx);
+		peerHandler.sendInterestedMessage(newMessage);
+
+		sendRequestMessage(pieceIdx);
+	}
+
+	/**
+	 * Triggers the request messages for the neigboring peer
+	 * 
+	 * @param pieceIdx - specifies the index of the piece
+	 */
+	private void sendRequestMessage(int pieceIdx) {
+		// Request the piece after sending the interested message
+		PeerMessage newMessage = PeerMessage.create(Constants.TYPE_REQUEST_MESSAGE);
+		newMessage.setIndex(pieceIdx);
+		peerHandler.sendRequestMessage(newMessage);
+	}
+
+	/**
+	 * This function fetches all the missing pieces info for the given peer and
+	 * selects a random missing piece to be requested.
+	 * 
+	 * @return integer which indicates the index of the piece in the input file
+	 */
+	public int getMissingPieceRandomIdx() {
+		BitFieldHelper currentPeerBFH = controller.getBitFieldMessage().getManageBitFields();
+		ArrayList<Integer> missingPiecesIdx = new ArrayList<Integer>();
+
+		for (int i = 0; i < neighborPeerBFH.getNumberOfSegments()
+				&& missingPiecesIdx.size() < Constants.MAX_PIECES_LIMIT; i++) {
+			if (currentPeerBFH.getValueAtIndex(i) == 0 && neighborPeerBFH.getValueAtIndex(i) == 1) {
+				missingPiecesIdx.add(i);
+			}
 		}
 
-		if (count == 0) {
+		if (missingPiecesIdx.size() == 0) {
 			return -1;
 		}
+
 		Random random = new Random();
-		int index = random.nextInt(count);
-		return pieceIndexArray[index];
+		return missingPiecesIdx.get(random.nextInt(missingPiecesIdx.size()));
 	}
 
 	/**
-	 * add message into queue
+	 * This function checks if the current peer doesn't have the specified peer
+	 * which the neighboring peer has
 	 * 
-	 * @param message
+	 * @return boolean indicating whether the condition is true or not
+	 */
+	public boolean isCurrentPeerMissingThePiece(int pieceIdx) {
+		BitFieldHelper currentPeerBFH = controller.getBitFieldMessage().getManageBitFields();
+		return currentPeerBFH.getValueAtIndex(pieceIdx) == 0 && neighborPeerBFH.getValueAtIndex(pieceIdx) == 1;
+	}
+
+	/**
+	 * Adds the peer message request to the blocking queue for processing
+	 * 
+	 * @param message - One of the 8 peer message requests
 	 * @throws InterruptedException
 	 */
-	public void addMessage(PeerMessage message) throws InterruptedException {
-		if (messageQueue == null) {
-			throw new IllegalStateException("");
-		} else {
-			messageQueue.put(message);
-		}
+	public void addPeerMessageToQueue(PeerMessage message) throws InterruptedException {
+		messageQueue.put(message);
 	}
 
 	/**
-	 *
-	 * @return
+	 * Checks whether the neighboring peer has downloaded the complete file or not
+	 * 
+	 * @return boolean - True if the neighboring peer download is successful
 	 */
 	public boolean isNeighborPeerDownloadedFile() {
-		return neighborPeerBitFieldManager != null && neighborPeerBitFieldManager.checkIfFileIsDownloaded();
+		return neighborPeerBFH != null && neighborPeerBFH.checkIfFileIsDownloaded();
 	}
 }
