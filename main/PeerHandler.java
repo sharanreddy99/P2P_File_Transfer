@@ -1,4 +1,4 @@
-package main.handlers;
+package main;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -6,7 +6,6 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 
-import main.PeerController;
 import main.constants.Constants;
 import main.helper.LogHelper;
 import main.helper.MessageHelper;

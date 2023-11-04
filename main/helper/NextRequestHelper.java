@@ -6,8 +6,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import main.PeerController;
+import main.PeerHandler;
 import main.constants.Constants;
-import main.handlers.PeerHandler;
 import main.messageTypes.PeerMessage;
 
 /**

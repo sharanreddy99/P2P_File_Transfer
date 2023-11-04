@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 
 import main.constants.Constants;
-import main.handlers.PeerHandler;
 import main.helper.ChokeUnchokePeerHelper;
 import main.helper.CommonConfigHelper;
 import main.helper.LogHelper;
