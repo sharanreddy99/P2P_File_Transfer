@@ -18,9 +18,10 @@ public class Constants {
 	public static final String LOGGER_NAME = "logger.name";
 	public static final String CONFIGURATION_FILE = "Common.cfg";
 	public static final String PEER_INFO_FILE = "PeerInfo.cfg";
-	public static final String CHOKE_UNCHOKE_INTERVAL = "UnchokingInterval";
-	public static final String OPTIMISTIC_UNCHOKE_INTERVAL = "OptimisticUnchokingInterval";
-	public static final String FILE_SIZE = "FileSize";
+	public static final String CHOKE_UNCHOKE_INTERVAL_LABEL = "UnchokingInterval";
+	public static final String OPTIMISTIC_UNCHOKE_INTERVAL_LABEL = "OptimisticUnchokingInterval";
+	public static final String FILE_SIZE_LABEL = "FileSize";
+	public static final String PIECE_SIZE_LABEL = "PieceSize";
 
 	// Handshake
 	public static final String HANDSHAKE_HEADER_STRING = "P2PFILESHARINGPROJ";

@@ -27,7 +27,8 @@ public class ManageBitFields implements Serializable {
     }
 
     /**
-     * Set the value (downloaded or not downloaded) at the given index in the bit field.
+     * Set the value (downloaded or not downloaded) at the given index in the bit
+     * field.
      *
      * @param index The index of the segment
      * @param value True if downloaded, false if not downloaded
@@ -37,9 +38,11 @@ public class ManageBitFields implements Serializable {
     }
 
     /**
-     * Fill the entire bit field with the given number, indicating complete download or not downloaded.
+     * Fill the entire bit field with the given number, indicating complete download
+     * or not downloaded.
      *
-     * @param number The value to fill the bit field with (1 for downloaded, 0 for not downloaded)
+     * @param number The value to fill the bit field with (1 for downloaded, 0 for
+     *               not downloaded)
      */
     public void fillTheSegmentArrayWithNumber(int number) {
         Arrays.fill(segmentArray, number);
@@ -83,12 +86,22 @@ public class ManageBitFields implements Serializable {
     }
 
     /**
-     * Get the value (downloaded or not downloaded) at the given index in the bit field.
+     * Get the value (downloaded or not downloaded) at the given index in the bit
+     * field.
      *
      * @param index The index of the segment
      * @return 1 if downloaded, 0 if not downloaded
      */
     public int getValueAtIndex(int index) {
         return segmentArray[index];
+    }
+
+    public void displayBitMap() {
+        System.out.println("The bitMap is: ");
+        for (int i = 0; i < segmentArray.length; i++) {
+            System.out.print(" " + i + " : " + segmentArray[i]);
+        }
+
+        System.out.println();
     }
 }

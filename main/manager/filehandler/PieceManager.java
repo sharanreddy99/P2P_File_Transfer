@@ -4,9 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.RandomAccessFile;
 
+import main.Datahandler.ManageBitFields;
 import main.constants.Constants;
 import main.helper.CommonConfigHelper;
-import main.messageTypes.Piece;
+import main.messageTypes.DataSegment;
 
 /**
  * Piece Manager
@@ -19,7 +20,7 @@ public class PieceManager {
 	private RandomAccessFile outStream;
 	private FileInputStream inStream;
 
-	private static BitFieldHandler bitField;
+	private static ManageBitFields bitFieldManager;
 	private static volatile PieceManager instance;
 
 	/**
@@ -48,22 +49,23 @@ public class PieceManager {
 	 */
 	public boolean init(boolean isFileExists, String peerID) {
 		// get config logMessage(: PieceSize
-		if (CommonConfigHelper.getConfig("PieceSize") != null)
-			size = Integer.parseInt(CommonConfigHelper.getConfig("PieceSize"));
+		if (CommonConfigHelper.getConfig(Constants.PIECE_SIZE_LABEL) != null)
+			size = Integer.parseInt(CommonConfigHelper.getConfig(Constants.PIECE_SIZE_LABEL));
 		else {
 			// System.err.println("Piece Size not in Properties file. Invalid Properties
 			// File!!!");
 		}
 
 		// get config logMessage(: FileSize
-		if (CommonConfigHelper.getConfig("FileSize") != null) {
-			numOfPieces = (int) Math.ceil(Integer.parseInt(CommonConfigHelper.getConfig("FileSize")) / (size * 1.0));
+		if (CommonConfigHelper.getConfig(Constants.FILE_SIZE_LABEL) != null) {
+			numOfPieces = (int) Math
+					.ceil(Integer.parseInt(CommonConfigHelper.getConfig(Constants.FILE_SIZE_LABEL)) / (size * 1.0));
 		}
 
 		try {
-			bitField = new BitFieldHandler(numOfPieces);
+			bitFieldManager = new ManageBitFields(numOfPieces);
 			if (isFileExists) {
-				bitField.setBitFieldOnForAllIndexes();
+				bitFieldManager.fillTheSegmentArrayWithNumber(1);
 			}
 			String outputFileName = CommonConfigHelper.getConfig("FileName");
 
@@ -77,7 +79,7 @@ public class PieceManager {
 
 			outputFileName = directory.getAbsolutePath() + "/" + outputFileName;
 			outStream = new RandomAccessFile(outputFileName, "rw");
-			outStream.setLength(Integer.parseInt(CommonConfigHelper.getConfig(Constants.FILE_SIZE)));
+			outStream.setLength(Integer.parseInt(CommonConfigHelper.getConfig(Constants.FILE_SIZE_LABEL)));
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -112,9 +114,9 @@ public class PieceManager {
 	 * @param index
 	 * @return
 	 */
-	synchronized public Piece get(int index) {
-		Piece newPiece = new Piece(size);
-		if (bitField.getBitField(index)) {
+	synchronized public DataSegment get(int index) {
+		DataSegment newDataSegment = new DataSegment(size);
+		if (bitFieldManager.getValueAtIndex(index) == 1) {
 			byte[] readBytes = new byte[size];
 			int newSize = 0;
 			// have to read this piece from my own output file.
@@ -130,11 +132,11 @@ public class PieceManager {
 				if (newSize >= 0) {
 					System.arraycopy(readBytes, 0, newReadBytes, 0, newSize);
 				}
-				newPiece.setByteData(newReadBytes);
+				newDataSegment.setData(newReadBytes);
 			} else {
-				newPiece.setByteData(readBytes);
+				newDataSegment.setData(readBytes);
 			}
-			return newPiece;
+			return newDataSegment;
 		} else {
 			return null;
 		}
@@ -146,13 +148,13 @@ public class PieceManager {
 	 * @param index
 	 * @param piece
 	 */
-	synchronized public void write(int index, Piece piece) {
-		if (!bitField.getBitField(index)) {
+	synchronized public void write(int index, DataSegment dataSegment) {
+		if (bitFieldManager.getValueAtIndex(index) == 0) {
 			try {
 				// have to write this piece in Piece object array
 				outStream.seek(index * size);
-				outStream.write(piece.getByteData());
-				bitField.setBitField(index, true);
+				outStream.write(dataSegment.getData());
+				bitFieldManager.setValueAtIndex(index, true);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -169,9 +171,9 @@ public class PieceManager {
 		int count = 0, missSize = 0;
 		// parse missing indexe count
 		while (true) {
-			if (count >= bitField.getSize())
+			if (count >= bitFieldManager.getNumberOfSegments())
 				break;
-			if (!bitField.getBitField(count)) {
+			if (bitFieldManager.getValueAtIndex(count) == 0) {
 				missSize++;
 			}
 			count++;
@@ -182,15 +184,15 @@ public class PieceManager {
 		count = 0;
 		missSize = 0;
 		while (true) {
-			if (count >= bitField.getSize())
+			if (count >= bitFieldManager.getNumberOfSegments())
 				break;
 
-			if (!bitField.getBitField(count)) {
+			if (bitFieldManager.getValueAtIndex(count) == 0) {
 				missData[missSize++] = count;
 			}
 			count++;
 		}
-		bitField.printVector();
+		bitFieldManager.displayBitMap();
 
 		return missData;
 	}
@@ -201,7 +203,7 @@ public class PieceManager {
 	 * @return
 	 */
 	public synchronized boolean hasDownloadFileComplete() {
-		return bitField.isFileDownloadComplete();
+		return bitFieldManager.checkIfFileIsDownloaded();
 	}
 
 	/**
@@ -209,7 +211,7 @@ public class PieceManager {
 	 * 
 	 * @return
 	 */
-	public BitFieldHandler getBitField() {
-		return bitField;
+	public ManageBitFields getBitField() {
+		return bitFieldManager;
 	}
 }
