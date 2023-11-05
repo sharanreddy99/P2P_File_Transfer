@@ -373,7 +373,7 @@ public class PeerController {
 
 		// Create a shutdown mesage
 		PeerMessage shutdownMessage = PeerMessage.create();
-		shutdownMessage.setMessageType(Constants.SHUTDOWN_MESSAGE);
+		shutdownMessage.setMessageType(Constants.TYPE_SHUTDOWN_MESSAGE);
 
 		// Mark that the current peer has successfully downloaded the file.
 		markFileDownloadComplete(peerId);

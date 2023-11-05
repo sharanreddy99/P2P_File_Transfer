@@ -63,12 +63,12 @@ public class Constants {
 	public static final byte TYPE_BITFIELD_MESSAGE = 5;
 	public static final byte TYPE_REQUEST_MESSAGE = 6;
 	public static final byte TYPE_PIECE_MESSAGE = 7;
+	public static final byte TYPE_SHUTDOWN_MESSAGE = 100;
 
 	// TODO
 	public static final int RAW_DATA_SIZE = 1000;
 	public static final int MAX_MESSAGE_SIZE = 40000;
 	public static final int SIZE_OF_EMPTY_MESSAGE = 1;
-	public static final byte SHUTDOWN_MESSAGE = 100;
 	public static final int SENDER_QUEUE_SIZE = 100;
 
 }

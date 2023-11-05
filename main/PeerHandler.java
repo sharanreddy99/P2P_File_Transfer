@@ -179,7 +179,7 @@ public class PeerHandler implements Runnable {
 						processUnchockMessage(peer2PeerMessage);
 						break;
 					}
-					case Constants.SHUTDOWN_MESSAGE:
+					case Constants.TYPE_SHUTDOWN_MESSAGE:
 						PeerMessage peer2peerMessage = (PeerMessage) message;
 						handleShutdownMessage(peer2peerMessage);
 						break;
