@@ -60,9 +60,12 @@ public class MessageHelper implements Runnable {
 					"Exception occured while reading message request from the message queue. Message: "
 							+ e.getMessage());
 		} catch (IOException e) {
-			System.out.println(
-					"Exception occured while sending request message to the peer through output stream. Message: "
-							+ e.getMessage());
+			// Output stream may be closed when the other peer has downloaded the file.
+			// Hence commenting this as it throws exception when done.
+			// System.out.println(
+			// "Exception occured while sending request message to the peer through output
+			// stream. Message: "
+			// + e.getMessage());
 		}
 	}
 
