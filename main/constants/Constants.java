@@ -17,14 +17,23 @@ public class Constants {
 	public static final String LOG_FILE_NAME_PREFIX = "log_peer_";
 
 	// LogMessageFormats
-	public static final String CHOKE_UNCHOKE_LOG_MESSAGE = "Peer [%s] has the preferred neighbors %s";
-	public static final String FILE_DOWNLOADED_LOG_MESSAGE = "Peer [%s] has downloaded the complete file";
-	public static final String OPTIMISTICALLY_UNCHOKE_LOG_MESSAGE = "Peer [%s] has the optimistically unchoked neighbor [%s]";
+	public static final String MAKE_CONNECTION_SENDER_LOG_MESSAGE = "Peer [%s] makes a connection to Peer [%s]";
+	public static final String MAKE_CONNECTION_RECEIVER_LOG_MESSAGE = "Peer [%s] is connected from Peer [%s]";
+	public static final String CHANGE_OF_PREFERRED_NEIGHBORS_LOG_MESSAGE = "Peer [%s] has the preferred neighbors [%s]";
+	public static final String CHANGE_OF_OPTIMISTICALLY_UNCHOKED_NEIGHBORS_LOG_MESSAGE = "Peer [%s] has the optimistically unchoked neighbor [%s]";
+	public static final String UNCHOKED_LOG_MESSAGE = "Peer [%s] is unchoked by [%s]";
+	public static final String CHOKED_LOG_MESSAGE = "Peer [%s] is choked by [%s]";
+	public static final String HAVE_LOG_MESSAGE = "Peer [%s] received the 'have'’' message from [%s] for the piece [%s]";
+	public static final String INTERESTED_LOG_MESSAGE = "Peer [%s] received the 'interested' message from [%s]";
+	public static final String NOT_INTERESTED_LOG_MESSAGE = "Peer [%s] received the 'not interested' message from [%s]";
+	public static final String FILE_PARTIAL_DOWNLOADE_LOG_MESSAGE = "Peer [%s] has downloaded the piece [%s] from [%s]. Now the number of pieces it has is [%s]";
+	public static final String FILE_COMPLETE_DOWNLOAD_LOG_MESSAGE = "Peer [%s] has downloaded the complete file";
 
 	// Common Config
 	public static final String LOGGER_NAME = "logger.name";
 	public static final String CONFIGURATION_FILE = "Common.cfg";
 	public static final String PEER_INFO_FILE = "PeerInfo.cfg";
+	public static final String PREFERRED_NEIGHBORS_LABEL = "NumberOfPreferredNeighbors";
 	public static final String CHOKE_UNCHOKE_INTERVAL_LABEL = "UnchokingInterval";
 	public static final String OPTIMISTIC_UNCHOKE_INTERVAL_LABEL = "OptimisticUnchokingInterval";
 	public static final String FILE_SIZE_LABEL = "FileSize";

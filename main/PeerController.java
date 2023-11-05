@@ -283,7 +283,8 @@ public class PeerController {
 		PeerMessage unChokeMessage = PeerMessage.create();
 		unChokeMessage.setMessageType(Constants.TYPE_UNCHOKE_MESSAGE);
 
-		logger.logMessage(String.format(Constants.OPTIMISTICALLY_UNCHOKE_LOG_MESSAGE, peerId, contenderID));
+		logger.logMessage(
+				String.format(Constants.CHANGE_OF_OPTIMISTICALLY_UNCHOKED_NEIGHBORS_LOG_MESSAGE, peerId, contenderID));
 		for (PeerHandler peerHandler : this.peerHandlers) {
 			if (peerHandler.getPeerId().equals(contenderID)) {
 				if (peerHandler.isHandshakeReceived()) {

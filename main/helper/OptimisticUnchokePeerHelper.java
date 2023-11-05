@@ -59,7 +59,7 @@ public class OptimisticUnchokePeerHelper implements Runnable {
 
 		controller.updateFileDownloadStatus();
 		if (controller.isFileDownloadComplete()) {
-			logger.logMessage(String.format(Constants.FILE_DOWNLOADED_LOG_MESSAGE, controller.getPeerId()));
+			logger.logMessage(String.format(Constants.FILE_COMPLETE_DOWNLOAD_LOG_MESSAGE, controller.getPeerId()));
 			controller.broadcastShutdown();
 		}
 	}
