@@ -9,12 +9,13 @@ package main.constants;
  */
 public class Constants {
 	// RemotePeers
-	public static final int SSH_TIMEOUT = 5000; // SSH timeout in milliseconds
+	public static final int SSH_TIMEOUT = 2500; // SSH timeout in milliseconds
 	public static final boolean IS_LOCAL_HOST = true; // A boolean indicating if the host is local
 
 	// Logger Configuration
 	public static final String LOG_FILE_DIRECTORY_NAME = "log";
 	public static final String LOG_FILE_NAME_PREFIX = "log_peer_";
+	public static final boolean SHOW_OPTIONAL_LOG_MESSAGES = true;
 
 	// LogMessageFormats
 	public static final String MAKE_CONNECTION_SENDER_LOG_MESSAGE = "Peer [%s] makes a connection to Peer [%s]";
@@ -23,11 +24,16 @@ public class Constants {
 	public static final String CHANGE_OF_OPTIMISTICALLY_UNCHOKED_NEIGHBORS_LOG_MESSAGE = "Peer [%s] has the optimistically unchoked neighbor [%s]";
 	public static final String UNCHOKED_LOG_MESSAGE = "Peer [%s] is unchoked by [%s]";
 	public static final String CHOKED_LOG_MESSAGE = "Peer [%s] is choked by [%s]";
-	public static final String HAVE_LOG_MESSAGE = "Peer [%s] received the 'have'’' message from [%s] for the piece [%s]";
+	public static final String HAVE_LOG_MESSAGE = "Peer [%s] received the 'have' message from [%s] for the piece [%s]";
 	public static final String INTERESTED_LOG_MESSAGE = "Peer [%s] received the 'interested' message from [%s]";
 	public static final String NOT_INTERESTED_LOG_MESSAGE = "Peer [%s] received the 'not interested' message from [%s]";
 	public static final String FILE_PARTIAL_DOWNLOADE_LOG_MESSAGE = "Peer [%s] has downloaded the piece [%s] from [%s]. Now the number of pieces it has is [%s]";
 	public static final String FILE_COMPLETE_DOWNLOAD_LOG_MESSAGE = "Peer [%s] has downloaded the complete file";
+
+	// OptionalLogMessageFormats
+	public static final String SENDER_HANDSHAKE_LOG_MESSAGE = "Peer [%s] has sent a handshake message to Peer [%s] with the header [%s]";
+	public static final String BITFIELD_LOG_MESSAGE = "Peer [%s] has received from Peer [%s] the following bitfields set [%s]";
+	public static final String HANDSHAKE_FAILED_LOG_MESSAGE = "Handshake failed with Peer [%s] due to incorrect header [%s]";
 
 	// Common Config
 	public static final String LOGGER_NAME = "logger.name";

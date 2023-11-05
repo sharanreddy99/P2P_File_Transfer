@@ -102,12 +102,18 @@ public class BitFieldHelper implements Serializable {
         return segmentArray[index];
     }
 
-    public void displayBitMap() {
-        System.out.println("The bitMap is: ");
-        for (int i = 0; i < segmentArray.length; i++) {
-            System.out.print(" " + i + " : " + segmentArray[i]);
+    public String fetchBitFieldMap() {
+        StringBuilder bitField = new StringBuilder();
+        for (int i = 0; i < segmentArray.length; i += 8) {
+            for (int j = i; j < i + 8; j++) {
+                if (j >= segmentArray.length) {
+                    bitField.append('0');
+                } else {
+                    bitField.append(segmentArray[j]);
+                }
+            }
         }
 
-        System.out.println();
+        return bitField.toString();
     }
 }

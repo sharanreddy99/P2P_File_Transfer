@@ -31,4 +31,11 @@ public interface PeerMessageType extends Serializable {
      * @return The message number.
      */
     int messageNumber();
+
+    /**
+     * Get the header which is set for the handshake message
+     *
+     * @return The message header
+     */
+    String getHeader();
 }

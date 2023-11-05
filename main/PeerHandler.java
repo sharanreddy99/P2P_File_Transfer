@@ -22,7 +22,7 @@ public class PeerHandler implements Runnable {
 	private ObjectInputStream objectInputStream; // neighbor peer input stream
 	private MessageHelper peerMessageSender; // peerMessageSender
 	private NextRequestHelper chunkRequester;
-	private LogHelper messageLoggerUtil; // log util
+	private LogHelper logger; // log util
 
 	private String peerId; // peer id
 	private Socket neighborSocket; // neighbor peer socket
@@ -89,7 +89,7 @@ public class PeerHandler implements Runnable {
 		new Thread(peerMessageSender).start();
 
 		chunkRequester = NextRequestHelper.getNewInstance(controller, this);
-		messageLoggerUtil = controller.getLogger();
+		logger = controller.getLogger();
 		return true;
 	}
 
@@ -196,7 +196,7 @@ public class PeerHandler implements Runnable {
 	 * @param unchokeMessage
 	 */
 	private void processUnchockMessage(PeerMessage unchokeMessage) {
-		messageLoggerUtil.logMessage("Peer [" + controller.getPeerId() + "] is unchoked by [" + peerId + "]");
+		logger.logMessage(String.format(Constants.UNCHOKED_LOG_MESSAGE, controller.getPeerId(), peerId));
 		isChokedByNeighborPeer = false;
 		try {
 			chunkRequester.addPeerMessageToQueue(unchokeMessage);
@@ -228,7 +228,7 @@ public class PeerHandler implements Runnable {
 	 * @param message
 	 */
 	private void processChokeMessage(PeerMessage message) {
-		messageLoggerUtil.logMessage("Peer [" + controller.getPeerId() + "] is choked by [" + peerId + "]");
+		logger.logMessage(String.format(Constants.CHOKED_LOG_MESSAGE, controller.getPeerId(), peerId));
 		isChokedByNeighborPeer = true;
 	}
 
@@ -240,6 +240,10 @@ public class PeerHandler implements Runnable {
 	private void processBitFieldMessage(PeerMessage message) {
 		try {
 			chunkRequester.addPeerMessageToQueue(message);
+			if (Constants.SHOW_OPTIONAL_LOG_MESSAGES) {
+				controller.getLogger().logMessage(String.format(Constants.BITFIELD_LOG_MESSAGE, controller.getPeerId(),
+						getPeerId(), message.getManageBitFields().fetchBitFieldMap()));
+			}
 			if (isHandshakeReceived && isHandShakeSent && !isChunkStarted()) {
 				new Thread(chunkRequester).start();
 				startMeasuringDownloadTime();
@@ -253,23 +257,33 @@ public class PeerHandler implements Runnable {
 
 	/**
 	 * processHandshakeMessage
-	 * 
+	 *
 	 * @param message
 	 */
 	private void processHandshakeMessage(HandshakeMessage message) {
 		peerId = message.getPeerId();
-		sendBitFieldMessage();
 		if (!isHandShakeSent) {
-			messageLoggerUtil.logMessage("Handshake Message received and processed correctly.");
-			messageLoggerUtil.logMessage("Peer " + controller.getPeerId() + " is connected from Peer " + peerId + ".");
 			sendHandshakeMessage();
-		}
-
-		isHandshakeReceived = true;
-		if (isHandShakeSent && !isChunkStarted()) {
-			new Thread(chunkRequester).start();
-			startMeasuringDownloadTime();
-			setChunkStarted(true);
+			logger.logMessage(
+					String.format(Constants.MAKE_CONNECTION_RECEIVER_LOG_MESSAGE,
+							controller.getPeerId(), peerId));
+			sendBitFieldMessage();
+		} else {
+			if (message.getHeader().equals(Constants.HANDSHAKE_HEADER_STRING) &&
+					!isHandshakeReceived) {
+				isHandshakeReceived = true;
+				if (isHandShakeSent && !isChunkStarted()) {
+					new Thread(chunkRequester).start();
+					startMeasuringDownloadTime();
+					setChunkStarted(true);
+				}
+			} else {
+				if (Constants.SHOW_OPTIONAL_LOG_MESSAGES) {
+					logger.logMessage(
+							String.format(Constants.HANDSHAKE_FAILED_LOG_MESSAGE, peerId,
+									message.getHeader()));
+				}
+			}
 		}
 	}
 
@@ -298,8 +312,8 @@ public class PeerHandler implements Runnable {
 	 * @param message
 	 */
 	private void processHaveMessage(PeerMessage message) {
-		messageLoggerUtil.logMessage("Peer [" + controller.getPeerId() + "] recieved the 'have' message from [" + peerId
-				+ "] for the piece" + message.getIndex());
+		logger.logMessage(
+				String.format(Constants.HAVE_LOG_MESSAGE, controller.getPeerId(), peerId, message.getIndex()));
 		try {
 			chunkRequester.addPeerMessageToQueue(message);
 		} catch (Exception e) {
@@ -313,9 +327,7 @@ public class PeerHandler implements Runnable {
 	 * @param message
 	 */
 	private void processInterestedMessage(PeerMessage message) {
-		messageLoggerUtil
-				.logMessage("Peer [" + controller.getPeerId() + "] recieved the 'interested' message from [" + peerId
-						+ "]");
+		logger.logMessage(String.format(Constants.INTERESTED_LOG_MESSAGE, controller.getPeerId(), peerId));
 	}
 
 	/**
@@ -324,8 +336,7 @@ public class PeerHandler implements Runnable {
 	 * @param message
 	 */
 	private void processNotInterestedMessage(PeerMessage message) {
-		messageLoggerUtil.logMessage(
-				"Peer [" + controller.getPeerId() + "] recieved the 'not interested' message from [" + peerId + "]");
+		logger.logMessage(String.format(Constants.NOT_INTERESTED_LOG_MESSAGE, controller.getPeerId(), peerId));
 	}
 
 	/**
@@ -335,12 +346,16 @@ public class PeerHandler implements Runnable {
 	 */
 	synchronized boolean sendHandshakeMessage() {
 		try {
-			HandshakeMessage message = new HandshakeMessage();
+			HandshakeMessage message = new HandshakeMessage(Constants.HANDSHAKE_HEADER_STRING);
 			message.setID(controller.getPeerId());
 			peerMessageSender.sendMessage(message);
 			isHandShakeSent = true;
-			messageLoggerUtil.logMessage("Peer [" + controller.getPeerId() + "] : Handshake Message (P2PFILESHARINGPROJ"
-					+ controller.getPeerId() + ") sent");
+			logger.logMessage(String.format(Constants.MAKE_CONNECTION_SENDER_LOG_MESSAGE, controller.getPeerId(),
+					peerId));
+			if (Constants.SHOW_OPTIONAL_LOG_MESSAGES) {
+				logger.logMessage(String.format(Constants.SENDER_HANDSHAKE_LOG_MESSAGE, controller.getPeerId(),
+						peerId, message.getHeader()));
+			}
 			return true;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -355,8 +370,6 @@ public class PeerHandler implements Runnable {
 	synchronized void sendBitFieldMessage() {
 		try {
 			PeerMessage message = controller.getBitFieldMessage();
-			messageLoggerUtil
-					.logMessage("Peer [" + controller.getPeerId() + "] : exchanging bitfiled " + message.getIndex());
 			peerMessageSender.sendMessage(message);
 			Thread.sleep(4000);
 		} catch (Exception e) {

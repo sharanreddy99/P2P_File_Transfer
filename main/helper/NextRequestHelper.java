@@ -66,6 +66,12 @@ public class NextRequestHelper implements Runnable {
 	public void run() {
 		try {
 			for (;;) {
+				if (!controller.isDownloadComplete && controller.isFileDownloadComplete()) {
+					controller.isDownloadComplete = true;
+					controller.getLogger().logMessage(
+							String.format(Constants.FILE_COMPLETE_DOWNLOAD_LOG_MESSAGE, controller.getPeerId()));
+				}
+
 				PeerMessage message = messageQueue.take();
 				switch (message.getMessageType()) {
 					case Constants.TYPE_BITFIELD_MESSAGE:
@@ -155,6 +161,7 @@ public class NextRequestHelper implements Runnable {
 			if (missingPieceIdx != -1 && peerHandler.isPreviousMessageReceived()) {
 				sendRequestMessage(missingPieceIdx);
 			}
+
 		} catch (Exception e) {
 			System.out.println(
 					"Exception occured when handling the `piece` request. Message: "

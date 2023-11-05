@@ -12,13 +12,15 @@ public class HandshakeMessage implements PeerMessageType {
     private static int messageNumberCounter = 0;
 
     private int messageNumber;
+    private String header;
     private String ID;
 
     /**
      * Constructor to create a HandshakeMessage and attach a message number.
      */
-    public HandshakeMessage() {
+    public HandshakeMessage(String header) {
         attachMessageNumber(this);
+        this.header = header;
     }
 
     /**
@@ -75,5 +77,14 @@ public class HandshakeMessage implements PeerMessageType {
      */
     public int messageNumber() {
         return messageNumber;
+    }
+
+    /**
+     * Get the header which is set for the handshake message
+     *
+     * @return The message header
+     */
+    public String getHeader() {
+        return this.header;
     }
 }

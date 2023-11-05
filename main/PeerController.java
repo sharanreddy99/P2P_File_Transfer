@@ -38,6 +38,7 @@ public class PeerController {
 	private String peerId;
 
 	private boolean connectionEstablished = false;
+	public boolean isDownloadComplete = false;
 
 	private static volatile PeerController instance = null;
 
@@ -304,9 +305,9 @@ public class PeerController {
 	public synchronized void insertPiece(PeerMessage pieceMessage, String sourcePeerID) {
 		try {
 			pieceManager.insertNthPiece(pieceMessage.getIndex(), pieceMessage.getData());
-			logger.logMessage("Peer [" + instance.getPeerId() + "] has downloaded the piece [" + pieceMessage.getIndex()
-					+ "] from [" + sourcePeerID + "]. Now the number of pieces it has is "
-					+ (pieceManager.getBitFieldHelper().getCountOfDownloadedSegments()));
+			logger.logMessage(String.format(Constants.FILE_PARTIAL_DOWNLOADE_LOG_MESSAGE, instance.getPeerId(),
+					pieceMessage.getIndex(), sourcePeerID,
+					pieceManager.getBitFieldHelper().getCountOfDownloadedSegments()));
 		} catch (IOException e) {
 			System.out
 					.println("Exception occured while inserting the piece at nth position for the given peer. Message: "

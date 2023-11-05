@@ -155,4 +155,9 @@ public class PeerMessage implements PeerMessageType {
     public void setMessageType(int messageType) {
         this.messageType = messageType;
     }
+
+    public String getHeader() {
+        return "";
+    }
+
 }

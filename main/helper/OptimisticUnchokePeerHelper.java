@@ -7,7 +7,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import main.PeerController;
-import main.constants.Constants;
 
 /**
  * This class runs the process of unchoking an optimistically chosen random
@@ -19,7 +18,6 @@ import main.constants.Constants;
 public class OptimisticUnchokePeerHelper implements Runnable {
 	private static OptimisticUnchokePeerHelper instance = null;
 	private PeerController controller = null;
-	private LogHelper logger = null;
 
 	private ScheduledFuture<?> process = null;
 
@@ -38,7 +36,6 @@ public class OptimisticUnchokePeerHelper implements Runnable {
 
 			instance = new OptimisticUnchokePeerHelper();
 			instance.controller = controller;
-			instance.logger = controller.getLogger();
 		}
 
 		return instance;
@@ -59,7 +56,6 @@ public class OptimisticUnchokePeerHelper implements Runnable {
 
 		controller.updateFileDownloadStatus();
 		if (controller.isFileDownloadComplete()) {
-			logger.logMessage(String.format(Constants.FILE_COMPLETE_DOWNLOAD_LOG_MESSAGE, controller.getPeerId()));
 			controller.broadcastShutdown();
 		}
 	}
