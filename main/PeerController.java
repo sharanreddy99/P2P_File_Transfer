@@ -43,20 +43,33 @@ public class PeerController {
 	private static volatile PeerController instance = null;
 
 	/**
+	 * Set PeerID to this instance
+	 * Compose the controller
+	 * @author Adithya KNG
+	 * @param id
+	 */
+	private void attachPeerIdAndComposeController(String id){
+		this.peerId = id;
+		boolean controllerConfigured = instance.composeController();
+		if (!controllerConfigured) {
+			instance = null;
+		}
+	}
+
+	/**
 	 * returnSingletonInstance: returns a singleton peerController instance for the
 	 * given peer
 	 * 
 	 * @param peerID
 	 * @return
+	 * @author Adithya KNG
 	 */
 	public static synchronized PeerController returnSingletonInstance(String peerID) {
-		if (instance == null) {
-			instance = new PeerController();
-			instance.peerId = peerID;
-			if (!instance.configControler()) {
-				instance = null;
-			}
+		if(instance != null){
+			return null;
 		}
+		instance = new PeerController();
+		instance.attachPeerIdAndComposeController(peerID);
 		return instance;
 	}
 
@@ -128,7 +141,7 @@ public class PeerController {
 		this.pieceManager = PieceHelper.returnSingletonInstance(isFileExists, peerId);
 	}
 
-	private boolean configControler() {
+	private boolean composeController() {
 		peerInfoHelperObj = PeerInfoHelper.returnSingletonInstance(); // get log instance
 		Peer currPeer = peerInfoHelperObj.getPeerObjectByKey(peerId);
 		boolean isFileExists = currPeer != null && currPeer.hasFile();
