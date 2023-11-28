@@ -1,10 +1,8 @@
 package main;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
-import java.nio.ByteBuffer;
+import java.io.*;
+import java.net.*;
+import java.nio.*;
 
 import main.constants.Constants;
 import main.helper.LogHelper;
@@ -38,21 +36,51 @@ public class PeerHandler implements Runnable {
 	private int downloadSize = 0;
 
 	/**
-	 * get new instance of PeerHandler
-	 * 
-	 * @param socket
-	 * @param controller
-	 * @return
+	 * Creates a new PeerHandler instance, attaches the provided Socket and PeerController,
+	 * initializes the PeerHandler, and returns the created PeerHandler if initialization is successful.
+	 *
+	 * @param controller The PeerController instance associated with the PeerHandler.
+	 * @param socket     The Socket associated with the PeerHandler.
+	 * @return A new PeerHandler instance if initialization is successful, otherwise null.
+	 * @author Adithya KNG
 	 */
-	synchronized public static PeerHandler getNewInstance(Socket socket, PeerController controller) {
-		PeerHandler peerHandler = new PeerHandler();
-		peerHandler.neighborSocket = socket;
-		peerHandler.controller = controller;
-		if (!peerHandler.init(controller)) {
-			peerHandler.close();
-			peerHandler = null;
-		}
-		return peerHandler;
+	public static synchronized PeerHandler createNewPeerHandler(PeerController controller, Socket socket) {
+		// Create a new PeerHandler instance
+		PeerHandler obj = new PeerHandler();
+
+		// Attach the provided Socket and PeerController to the PeerHandler
+		obj.attachSocketAndControllerToPeerHandler(socket, controller);
+
+		// Initialize the PeerHandler
+		boolean initializeHandler = obj.init(controller);
+
+		// Return the PeerHandler if initialization is successful, otherwise remove and return null
+		return initializeHandler ? obj : removePeerHandler(obj);
+	}
+
+	/**
+	 * Removes the provided PeerHandler instance.
+	 *
+	 * @param obj The PeerHandler instance to be removed.
+	 * @return null, indicating the removal of the PeerHandler.
+	 * @author Adithya KNG
+	 */
+	public static PeerHandler removePeerHandler(PeerHandler obj){
+		obj.close();
+		return obj = null;
+	}
+
+	/**
+	 * Attaches the provided Socket and PeerController to the PeerHandler.
+	 *
+	 * @param socket     The Socket to attach.
+	 * @param controller The PeerController to attach.
+	 * @author Adithya KNG
+	 */
+	public void attachSocketAndControllerToPeerHandler(Socket socket, PeerController controllerInstance){
+		// Implementation to attach the provided Socket and PeerController to the PeerHandler
+		this.neighborSocket = socket;
+		this.controller = controllerInstance;
 	}
 
 	/**
@@ -89,7 +117,7 @@ public class PeerHandler implements Runnable {
 		new Thread(peerMessageSender).start();
 
 		chunkRequester = NextRequestHelper.getNewInstance(controller, this);
-		logger = controller.getLogger();
+		logger = controller.getLoggerInstance();
 		return true;
 	}
 
@@ -119,10 +147,10 @@ public class PeerHandler implements Runnable {
 		}
 		try {
 			// System.out.println(LOGGER_PREFIX+": "+peerID+" : Handshake Message sent");
-			while (!controller.isOperationFinish()) {
+			while (!controller.checkIfOperationComplete()) {
 				// System.out.println(LOGGER_PREFIX+": "+peerID+" : Waiting for connection in
 				// while(controller.isOperationCompelete() == false){");
-				if (controller.isOperationFinish()) {
+				if (controller.checkIfOperationComplete()) {
 					// System.out.println(LOGGER_PREFIX+": "+peerID+": Breaking from while loop");
 					break;
 				}
@@ -211,8 +239,8 @@ public class PeerHandler implements Runnable {
 	 * @param messge
 	 */
 	private void processPieceMessage(PeerMessage messge) {
-		controller.insertPiece(messge, peerId);
-		controller.sendHaveMessage(messge.getIndex(), peerId);
+		controller.receiveAndStorePiece(messge, peerId);
+		controller.sendHaveToAllExcept(messge.getIndex(), peerId);
 		downloadSize += messge.getData().getDataLength();
 		setPreviousMessageReceived(true);
 		try {
@@ -241,7 +269,7 @@ public class PeerHandler implements Runnable {
 		try {
 			chunkRequester.addPeerMessageToQueue(message);
 			if (Constants.SHOW_OPTIONAL_LOG_MESSAGES) {
-				controller.getLogger().logMessage(String.format(Constants.BITFIELD_LOG_MESSAGE, controller.getPeerId(),
+				controller.getLoggerInstance().logMessage(String.format(Constants.BITFIELD_LOG_MESSAGE, controller.getPeerId(),
 						getPeerId(), message.getManageBitFields().fetchBitFieldMap()));
 			}
 			if (isHandshakeReceived && isHandShakeSent && !isChunkStarted()) {
@@ -294,7 +322,7 @@ public class PeerHandler implements Runnable {
 	 */
 	private void processRequestMessage(PeerMessage message) {
 		if (!hasChoked) {
-			PeerMessage pieceMessage = controller.genPieceMessage(message.getIndex());
+			PeerMessage pieceMessage = controller.constructPieceMessage(message.getIndex());
 			if (pieceMessage != null) {
 				try {
 					Thread.sleep(2000);
@@ -369,7 +397,7 @@ public class PeerHandler implements Runnable {
 	 */
 	synchronized void sendBitFieldMessage() {
 		try {
-			PeerMessage message = controller.getBitFieldMessage();
+			PeerMessage message = controller.getPeerMessage();
 			peerMessageSender.sendMessage(message);
 			Thread.sleep(4000);
 		} catch (Exception e) {
@@ -522,7 +550,7 @@ public class PeerHandler implements Runnable {
 	}
 
 	public void handleShutdownMessage(PeerMessage message) {
-		controller.markFileDownloadComplete(peerId);
+		controller.confirmFileDownload(peerId);
 	}
 
 	private void setChoke(boolean message) {

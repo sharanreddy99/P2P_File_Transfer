@@ -48,15 +48,15 @@ public class OptimisticUnchokePeerHelper implements Runnable {
 	 * @return null
 	 */
 	public void run() {
-		ArrayList<String> chokedPeers = controller.getChokedPeers();
+		ArrayList<String> chokedPeers = controller.returnChokedPeers();
 		if (chokedPeers.size() > 0) {
 			int randomPeer = new Random().nextInt(chokedPeers.size());
-			controller.optimisticallyUnChokePeers(chokedPeers.get(randomPeer));
+			controller.optimisticallyUnChokePeersWithContender(chokedPeers.get(randomPeer));
 		}
 
 		controller.updateFileDownloadStatus();
 		if (controller.isFileDownloadComplete()) {
-			controller.broadcastShutdown();
+			controller.notifyPeersAboutShutdown();
 		}
 	}
 

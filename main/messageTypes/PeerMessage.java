@@ -49,6 +49,29 @@ public class PeerMessage implements PeerMessageType {
     }
 
     /**
+     * Static factory method to create a new PeerMessage.
+     *
+     * @return A new PeerMessage instance
+     */
+    public static PeerMessage create(int messageType, int index, Piece data) {
+        PeerMessage peerMessage = new PeerMessage(messageType);
+        peerMessage.setData(data);
+        peerMessage.setIndex(index);
+        return peerMessage;
+    }
+
+    /**
+     * Static factory method to create a new PeerMessage.
+     *
+     * @return A new PeerMessage instance
+     */
+    public static PeerMessage create(int messageType, int index) {
+        PeerMessage peerMessage = new PeerMessage(messageType);
+        peerMessage.setIndex(index);
+        return peerMessage;
+    }
+
+    /**
      * Get the message type of the PeerMessage.
      *
      * @return The message type

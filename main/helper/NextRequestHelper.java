@@ -68,7 +68,7 @@ public class NextRequestHelper implements Runnable {
 			for (;;) {
 				if (!controller.isDownloadComplete && controller.isFileDownloadComplete()) {
 					controller.isDownloadComplete = true;
-					controller.getLogger().logMessage(
+					controller.getLoggerInstance().logMessage(
 							String.format(Constants.FILE_COMPLETE_DOWNLOAD_LOG_MESSAGE, controller.getPeerId()));
 				}
 
@@ -221,7 +221,7 @@ public class NextRequestHelper implements Runnable {
 	 * @return integer which indicates the index of the piece in the input file
 	 */
 	public int getMissingPieceRandomIdx() {
-		BitFieldHelper currentPeerBFH = controller.getBitFieldMessage().getManageBitFields();
+		BitFieldHelper currentPeerBFH = controller.getPeerMessage().getManageBitFields();
 		ArrayList<Integer> missingPiecesIdx = new ArrayList<Integer>();
 
 		for (int i = 0; i < neighborPeerBFH.getNumberOfSegments()
@@ -246,7 +246,7 @@ public class NextRequestHelper implements Runnable {
 	 * @return boolean indicating whether the condition is true or not
 	 */
 	public boolean isCurrentPeerMissingThePiece(int pieceIdx) {
-		BitFieldHelper currentPeerBFH = controller.getBitFieldMessage().getManageBitFields();
+		BitFieldHelper currentPeerBFH = controller.getPeerMessage().getManageBitFields();
 		return currentPeerBFH.getValueAtIndex(pieceIdx) == 0 && neighborPeerBFH.getValueAtIndex(pieceIdx) == 1;
 	}
 

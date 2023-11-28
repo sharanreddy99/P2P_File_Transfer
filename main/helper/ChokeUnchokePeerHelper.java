@@ -42,7 +42,7 @@ public class ChokeUnchokePeerHelper implements Runnable {
 
 			instance = new ChokeUnchokePeerHelper();
 			instance.controller = controller;
-			instance.logger = controller.getLogger();
+			instance.logger = controller.getLoggerInstance();
 		}
 
 		return instance;
@@ -94,8 +94,8 @@ public class ChokeUnchokePeerHelper implements Runnable {
 					String.join(",", unchokePeersList));
 
 			logger.logMessage(logMessage);
-			controller.unChokePeers(unchokePeersList);
-			controller.setChokePeers(chokePeersList);
+			controller.unchokePreferredPeers(unchokePeersList);
+			controller.getAndSetChokePeers(chokePeersList);
 		}
 	}
 

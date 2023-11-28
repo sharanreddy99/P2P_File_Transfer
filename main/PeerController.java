@@ -1,46 +1,68 @@
 package main;
 
-import java.io.IOException;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.io.*;
+import java.net.*;
+import java.util.*;
 
-import main.constants.Constants;
-import main.helper.ChokeUnchokePeerHelper;
-import main.helper.CommonConfigHelper;
-import main.helper.LogHelper;
-import main.helper.OptimisticUnchokePeerHelper;
-import main.helper.PeerInfoHelper;
-import main.helper.PieceHelper;
-import main.messageTypes.PeerMessage;
-import main.messageTypes.Peer;
-import main.messageTypes.Piece;
-
+import main.constants.*;
+import main.helper.*;
+import main.messageTypes.*;
 /**
- * Controller
+ * The PeerController class manages peer connections and file download operations.
+ * It provides methods for checking the status of operations, marking file downloads as complete,
+ * and retrieving information about connected peers.
+ *
+ * 
+ * Note: This class ensures thread safety for critical operations through synchronization.
+ *
+ *
+ * @author Adithya KNG, Sharan Sai Reddy Konda, Bhavan Voram
+ * @version 1.0
  */
 public class PeerController {
-
-	private ArrayList<PeerHandler> peerHandlers;
-	private PieceHelper pieceManager;
 	private PeerInfoHelper peerInfoHelperObj;
 
-	private final HashMap<String, String> peerCompleteMap = new HashMap<String, String>();
 	private ArrayList<String> chokedPeers = new ArrayList<String>();
+	private ArrayList<PeerHandler> listPeerHandlers;
 
-	private ChokeUnchokePeerHelper chokeUnchokeManager;
-	private OptimisticUnchokePeerHelper optimisticUnchokeManager;
+	private OptimisticUnchokePeerHelper optimisticUnchokeHelper;
 	private PeerServer peerServer;
-	private LogHelper logger;
+	private LogHelper logHelper;
 	private String peerId;
 
-	private boolean connectionEstablished = false;
+	private boolean isConnectionDone = false;
+	private ChokeUnchokePeerHelper chokeUnchokeHelper;
 	public boolean isDownloadComplete = false;
 
 	private static volatile PeerController instance = null;
+	private final HashMap<String, String> allPeerInfoMap = new HashMap<String, String>();
+	private PieceHelper pieceHelper;
+
+	/**
+	 * Sends a HAVE message to all connected peers except the one with the given peer ID.
+	 *
+	 * @author Sharan Sai Reddy KOnda
+	 * @param index       The index of the piece that the sender now has.
+	 * @param givenPeerId The ID of the peer to exclude from receiving the HAVE message.
+	 */
+	public void sendHaveToAllExcept(int index, String givenPeerId) {
+		PeerMessage haveMessage = PeerMessage.create(Constants.TYPE_HAVE_MESSAGE,index);
+		for(PeerHandler peerHandler: listPeerHandlers){
+			if (!(givenPeerId.equals(peerHandler.getPeerId()))) {
+				peerHandler.sendHaveMessage(haveMessage);
+			}
+		}
+	}
+
+	/**
+	 * Retrieves the list of choked peers.
+	 *
+	 * @author Sharan Sai Reddy Konda
+	 * @return An ArrayList containing the names or identifiers of choked peers.
+	 */
+	public ArrayList<String> returnChokedPeers() {
+		return chokedPeers;
+	}
 
 	/**
 	 * Set PeerID to this instance
@@ -74,88 +96,142 @@ public class PeerController {
 	}
 
 	/**
-	 * starts the peer process.
+	 * Retrieves the synchronized instance of the LogHelper class.
+	 * 
+	 * @author Adithya KNG
+	 * @return A LogHelper instance, ensuring thread safety through synchronization.
+	 */
+	public synchronized LogHelper getLoggerInstance() {
+		return logHelper;
+	}
+
+	/**
+	 * Start the peer process and create a
+	 * new thread to connect to neighours
+	 * @author Bhavan Voram
 	 */
 	public void beginPeerProcess() {
-		// start the current peer server
+
+		// Start Peerserver
 		new Thread(peerServer).start();
+		// Start the connection to all previous neighbours
+		startPerviousPeersAndComposeManagers();
+	}
+	/*
+	 * Start connection to previous peers and 
+	 * confifure the managers
+	 * @author Adithya KNG
+	 */
 
-		connectToPreviousPeer(); // connect to peer neighbors
-
-		chokeUnchokeManager = ChokeUnchokePeerHelper.returnSingletonInstance(this);
-		if (chokeUnchokeManager != null) {
-			int chokeUnchokeInterval = Integer
-					.parseInt(CommonConfigHelper.getConfig(Constants.CHOKE_UNCHOKE_INTERVAL_LABEL));
-			chokeUnchokeManager.start(0, chokeUnchokeInterval);
-
-		}
-
-		optimisticUnchokeManager = OptimisticUnchokePeerHelper.returnSingletonInstance(this);
-		if (optimisticUnchokeManager != null) {
-			int optimisticUnchokeInterval = Integer
-					.parseInt(CommonConfigHelper.getConfig(Constants.OPTIMISTIC_UNCHOKE_INTERVAL_LABEL));
-			optimisticUnchokeManager.start(0, optimisticUnchokeInterval);
+	 public void startPerviousPeersAndComposeManagers(){
+		try{
+			startConnectingToPreviousPeers();
+			configureChokeUnchokePeerHelper();
+			configureOptimisticUnchokePeerHelper();
+		}catch(Exception e){
+			System.out.println("Some exception occured "+e.getMessage());
 		}
 	}
+
+	/*
+	 * Configure the chokeUnchoke manager
+	 * @author Adithya KNG
+	 */
+	public void configureChokeUnchokePeerHelper(){
+		chokeUnchokeHelper = ChokeUnchokePeerHelper.returnSingletonInstance(this);
+		if (!(chokeUnchokeHelper == null)) {
+			String unchokeIntervalDelay = CommonConfigHelper.getConfig(Constants.CHOKE_UNCHOKE_INTERVAL_LABEL);
+			chokeUnchokeHelper.start(0, Integer.valueOf(unchokeIntervalDelay));
+		}
+	}
+
+	/*
+	 * Confiture the optimistic unchoke manager
+	 * @author Sharan Sai Reddy Konda
+	 */
+	public void configureOptimisticUnchokePeerHelper(){
+		optimisticUnchokeHelper = OptimisticUnchokePeerHelper.returnSingletonInstance(this);
+		if (!(optimisticUnchokeHelper == null)) {
+			String unchokeIntervalDelay = CommonConfigHelper.getConfig(Constants.OPTIMISTIC_UNCHOKE_INTERVAL_LABEL);
+			optimisticUnchokeHelper.start(0, Integer.valueOf(unchokeIntervalDelay));
+		}
+	}
+	
 
 	/**
 	 * Connect to previous peer neighbors as per the project requirement.
 	 */
-	private void connectToPreviousPeer() {
+	private void startConnectingToPreviousPeers() throws IOException {
 		HashMap<String, Peer> peerInfoMap = peerInfoHelperObj.getPeerMap();
-
-		try {
-			for (Map.Entry<String, Peer> set : peerInfoMap.entrySet()) {
-				if (Integer.parseInt(set.getKey()) < Integer.parseInt(peerId)) {
-					makeConnection(peerInfoMap.get(set.getKey()));
-				}
+		int currentPeerId = Integer.valueOf(peerId);
+		for (Map.Entry<String, Peer> set : peerInfoMap.entrySet()) {
+			int neighborPeerId = Integer.valueOf(set.getKey());
+			if ( neighborPeerId < currentPeerId) {
+				Peer givenPeer = peerInfoMap.get(set.getKey());
+				connectToPeer(givenPeer.getAddress(), givenPeer.getPort(), givenPeer.getPeerId());
 			}
-
-			setAllPeersConnection(true);
-
-		} catch (IOException e) {
-			System.out.printf("Exception occured while creating connections with neighbours. Message: %s\n",
-					e.getMessage());
 		}
+		this.isConnectionDone = true;
 	}
 
 	/**
-	 * connection to neighbor peer.
-	 *
-	 * @param peerInfo
+	 * Function to connect a peer to it's neighbours
+	 * @author AdithyaKNG
+	 * @param address
+	 * @param port
+	 * @param peerId
+	 * @throws IOException
 	 */
-	private void makeConnection(Peer peerInfo) throws IOException {
-		String address = peerInfo.getAddress();
-		int port = peerInfo.getPort();
-
+	private void connectToPeer(String address, int port, String peerId) throws IOException {
 		Socket neighborPeer = new Socket(address, port);
-		PeerHandler peerHandlerTmp = PeerHandler.getNewInstance(neighborPeer, this);
-
-		peerHandlerTmp.setPeerId(peerInfo.getPeerId());
-		peerHandlers.add(peerHandlerTmp);
-
-		new Thread(peerHandlerTmp).start();
+		PeerHandler peerHandlerInstance = getPeerHandler(peerId, neighborPeer);
+		Thread peerHandlerThread = new Thread(peerHandlerInstance);
+		peerHandlerThread.start();
 	}
 
-	private void configPieceManager(boolean isFileExists) {
-		this.pieceManager = PieceHelper.returnSingletonInstance(isFileExists, peerId);
+	/**
+	 * Function to get the peer handler
+	 * @author Bhavan Voram
+	 * @param peerId
+	 * @param neighborPeer
+	 * @return
+	 */
+	private PeerHandler getPeerHandler(String peerId, Socket neighborPeer){
+		PeerHandler peerHandlerInstance = PeerHandler.createNewPeerHandler(this,neighborPeer);
+		peerHandlerInstance.setPeerId(peerId);
+		listPeerHandlers.add(peerHandlerInstance);
+		return peerHandlerInstance;
 	}
 
+	/**
+	 * Function to initilize the piece manager
+	 * @author Sharan Sai Reddy Konda
+	 * @param isFileExists
+	 */
+	private void configPieceHelper(boolean isFileExists) {
+		this.pieceHelper = PieceHelper.returnSingletonInstance(isFileExists, peerId);
+	}
+
+	/**
+	 * Function to start the Peer controller.
+	 * @author Sharan Sai Reddy Konda
+	 * @return boolean
+	 */
 	private boolean composeController() {
 		peerInfoHelperObj = PeerInfoHelper.returnSingletonInstance(); // get log instance
 		Peer currPeer = peerInfoHelperObj.getPeerObjectByKey(peerId);
 		boolean isFileExists = currPeer != null && currPeer.hasFile();
-		this.peerHandlers = new ArrayList<PeerHandler>();
+		this.listPeerHandlers = new ArrayList<PeerHandler>();
 
 		// configure piece manager based on whether the peer has the target file or not
-		configPieceManager(isFileExists);
-		if (pieceManager == null) {
+		configPieceHelper(isFileExists);
+		if (pieceHelper == null) {
 			return false;
 		}
 
 		// configure logger instance
-		logger = new LogHelper(peerId);
-		if (!logger.isLoggerInitialized()) {
+		logHelper = new LogHelper(peerId);
+		if (!logHelper.isLoggerInitialized()) {
 			return false;
 		}
 
@@ -166,18 +242,24 @@ public class PeerController {
 		return true;
 	}
 
-	/**
+	/*
 	 * This function checks if the file is downloaded by the peers or not and
 	 * updates accordingly.
-	 * 
+	 * @return boolean
+	 * @author Adithya KNG
 	 */
-	public void updateFileDownloadStatus() {
-		if (isConnection() == false || peerServer.getServerStatus() == false) {
-			return;
+	public boolean updateFileDownloadStatus() {
+		boolean connectionStatus = isConnectionDone();
+		boolean serverStatus = peerServer.getServerStatus();
+		
+		if(connectionStatus == false || serverStatus == false){
+			// do nothing and return
+			return false;
 		}
-
-		if (peerInfoHelperObj.getPeerMap().size() == peerCompleteMap.size()) {
-			this.terminateObjects();
+		else{
+			int peerMapSize = peerInfoHelperObj.getPeerMap().size();
+			int allPeerInfoMapSize = allPeerInfoMap.size();
+			return (peerMapSize == allPeerInfoMapSize) ? this.terminateObjects() : false;
 		}
 	}
 
@@ -185,124 +267,114 @@ public class PeerController {
 	 * This function terminates all the necessary objects by closing and freeing
 	 * them out from memory and exits the process safely.
 	 */
-	public void terminateObjects() {
-		chokeUnchokeManager.destroy();
-		optimisticUnchokeManager.destroy();
-		logger.destroy();
-		pieceManager.close();
-		System.exit(0);
+	public boolean terminateObjects() {
+		try {
+			// Perform cleanup for each object
+			terminateChokeUnchokePeerHelper();
+			terminateOptimisticUnchokePeerHelper();
+			terminateLogger();
+			terminatePieceHelper();
+	
+			System.exit(0);
+			// Optionally, perform any additional cleanup or resource release
+			return true; // Indicate successful termination
+		} catch (Exception e) {
+			// Handle exceptions or log errors
+			return false; // Indicate unsuccessful termination
+		}
+	}
+
+	/*
+	 * Terminate Choke and Unchoke Peerhelper
+	 * @author Adithya KNG
+	 */
+	private void terminateChokeUnchokePeerHelper() {
+		chokeUnchokeHelper.destroy();
 	}
 
 	/**
-	 * register peerHandler into peerHandlers list
-	 * 
-	 * @param peerHandler
+	 * Checks whether the connection with all peers is complete.
+	 *
+	 * @author Bhavan Voram
+	 * @return True if the connection with all peers is complete, false otherwise.
 	 */
-	public synchronized void addPeerHandler(PeerHandler peerHandler) {
-		peerHandlers.add(peerHandler);
+	public boolean isConnectionDone() {
+		return isConnectionDone;
 	}
 
 	/**
-	 * generate BitFieldMessage
-	 * 
-	 * @return
+	 * Checks whether the download of the file is complete.
+	 *
+	 * @author Sharan Sai Reddy Konda
+	 * @return True if the file download is complete, false otherwise.
 	 */
-	public synchronized PeerMessage getBitFieldMessage() {
-		PeerMessage message = PeerMessage.create();
+	public boolean isFileDownloadComplete() {
+		return pieceHelper.hasDownloadFileComplete();
+	}
+	
+	/*
+	 * Termiante Optimistic unchoke Peer Helper
+	 * @author Adithya KNG
+	 */
+	private void terminateOptimisticUnchokePeerHelper() {
+		optimisticUnchokeHelper.destroy();
+	}
+	
+	/*
+	 * Terminate the logger
+	 * @author Bhavan Voram
+	 */
+	private void terminateLogger() {
+		logHelper.destroy();
+	}
 
-		message.setMessageType(Constants.TYPE_BITFIELD_MESSAGE);
-		message.setBitFieldHandler(pieceManager.getBitFieldHelper());
-
+	/*
+	 * Create and return a peer message in sychronized fashion
+	 * @return PeerMessage
+	 * @author Adithya KNG
+	 */
+	public PeerMessage getPeerMessage() {
+		PeerMessage message;
+		synchronized (this) {
+			message = PeerMessage.create(Constants.TYPE_BITFIELD_MESSAGE);
+			message.setBitFieldHandler(pieceHelper.getBitFieldHelper());
+		}
 		return message;
 	}
 
 	/**
-	 * gen download speed map
-	 * 
-	 * @return
+	 * Get the Download Rates of all the peers
+	 * @return map of peer ids and download rates
+	 * @author Bhavan Voram
 	 */
 	public HashMap<String, Double> getDownloadRates() {
-		HashMap<String, Double> speedList = new HashMap<>();
-		for (int i = 0; i < peerHandlers.size(); i++) {
-			PeerHandler peerHandler = peerHandlers.get(i);
-			speedList.put(peerHandler.getPeerId(), peerHandler.downloadSpeed());
+		HashMap<String, Double> downloadRates = new HashMap<String, Double>();
+		if(listPeerHandlers.size() == 0){
+			return downloadRates;
 		}
-		return speedList;
+		for(PeerHandler peerHandler: listPeerHandlers){
+			downloadRates.put(peerHandler.getPeerId(), peerHandler.downloadSpeed());
+		}
+		return downloadRates;
 	}
 
 	/**
-	 * setChokePeers
-	 * 
-	 * @param peerList
+	 * Initiates optimistic unchoking for a specified contender peer.
+	 *
+	 * @author Sharan Sai Reddy Konda
+	 * @param contenderID The ID of the contender peer to be optimistically unchoked.
 	 */
-	public void setChokePeers(ArrayList<String> peerList) {
-		chokedPeers = peerList;
-
-		PeerMessage chokeMessage = PeerMessage.create();
-		chokeMessage.setMessageType(Constants.TYPE_CHOKE_MESSAGE);
-
-		for (int i = 0; i < peerList.size(); i++) {
-			String peerIdTmp = peerList.get(i);
-			for (int j = 0, peerHandlersSize = peerHandlers.size(); j < peerHandlersSize; j++) {
-				PeerHandler peerHandler = peerHandlers.get(j);
-				if (peerHandler.getPeerId().equals(peerIdTmp)) {
-					if (peerHandler.isHandshakeReceived()) {
-						// System.out.println(LOGGER_PREFIX+" : Sending CHOKE message to peers :
-						// "+peerToBeChoked);
-						peerHandler.sendChokeMessage(chokeMessage);
-						break;
-					} else {
-						break;
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * unChokePeers
-	 * 
-	 * @param peerList
-	 */
-	public void unChokePeers(ArrayList<String> peerList) {
-		PeerMessage unChokeMessage = PeerMessage.create();
-		unChokeMessage.setMessageType(Constants.TYPE_UNCHOKE_MESSAGE);
-		// System.out.println(LOGGER_PREFIX+" : Sending UNCHOKE message to peers...");
-		for (int i = 0; i < peerList.size(); i++) {
-			String peerToBeUnChoked = peerList.get(i);
-			for (int j = 0; j < peerHandlers.size(); j++) {
-				PeerHandler peerHandler = peerHandlers.get(j);
-				if (peerHandler.getPeerId().equals(peerToBeUnChoked)) {
-					if (peerHandler.isHandshakeReceived()) {
-						// System.out.println(LOGGER_PREFIX+" : Sending UNCHOKE message to
-						// peers..."+peerToBeUnChoked);
-						peerHandler.sendUnchokeMessage(unChokeMessage);
-						break;
-					} else {
-						break;
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * this function tries to unchoke the peer chosen optimistically and connects
-	 * with it if handshake is successful
-	 * 
-	 * @param contenderID - the peer ID of the optimistically chosen unchoke peer.
-	 * @return null
-	 */
-	public void optimisticallyUnChokePeers(String contenderID) {
-		PeerMessage unChokeMessage = PeerMessage.create();
-		unChokeMessage.setMessageType(Constants.TYPE_UNCHOKE_MESSAGE);
-
-		logger.logMessage(
+	
+	public void optimisticallyUnChokePeersWithContender(String contenderID) {
+		// Log the change of optimistically unchoked neighbors
+		logHelper.logMessage(
 				String.format(Constants.CHANGE_OF_OPTIMISTICALLY_UNCHOKED_NEIGHBORS_LOG_MESSAGE, peerId, contenderID));
-		for (PeerHandler peerHandler : this.peerHandlers) {
+		
+		// Find the specified contender in the list of peer handlers and send an unchoke message
+		for (PeerHandler peerHandler : listPeerHandlers) {
 			if (peerHandler.getPeerId().equals(contenderID)) {
 				if (peerHandler.isHandshakeReceived()) {
-					peerHandler.sendUnchokeMessage(unChokeMessage);
+					peerHandler.sendUnchokeMessage(createMessage(Constants.TYPE_UNCHOKE_MESSAGE));
 				}
 				break;
 			}
@@ -310,42 +382,115 @@ public class PeerController {
 	}
 
 	/**
-	 * insert piece to piece manager
+	 * Checks whether the operation has completed.
 	 * 
-	 * @param pieceMessage
-	 * @param sourcePeerID
+	 * @author Sharan Sai Reddy Konda
+	 * @return True if the operation is considered complete, false otherwise.
 	 */
-	public synchronized void insertPiece(PeerMessage pieceMessage, String sourcePeerID) {
-		try {
-			pieceManager.insertNthPiece(pieceMessage.getIndex(), pieceMessage.getData());
-			logger.logMessage(String.format(Constants.FILE_PARTIAL_DOWNLOADE_LOG_MESSAGE, instance.getPeerId(),
-					pieceMessage.getIndex(), sourcePeerID,
-					pieceManager.getBitFieldHelper().getCountOfDownloadedSegments()));
-		} catch (IOException e) {
-			System.out
-					.println("Exception occured while inserting the piece at nth position for the given peer. Message: "
-							+ e.getMessage());
+	public boolean checkIfOperationComplete() {
+		return false;
+	}
+
+	/*
+	 * Function to create message with given constant
+	 * 
+	 * @param byte constant
+	 * @author Sharan Sai Reddy Konda
+	 * @return PeerMessage
+	 */
+	private PeerMessage createMessage(byte constant) {
+		PeerMessage message = PeerMessage.create();
+		message.setMessageType(constant);
+		return message;
+	}
+
+	/**
+	 * Handles the choke or unchoke operation for a list of peer IDs based on the specified type.
+	 *
+	 * @param listPeerIds A list of peer IDs to be processed.
+	 * @param type        The type of message to be sent (Constants.TYPE_CHOKE_MESSAGE or Constants.TYPE_UNCHOKE_MESSAGE).
+	 * @author Adithya KNG
+	 */
+	private void handleChokeUnchokePeers(ArrayList<String> listPeerIds, byte type){
+		for(String id: listPeerIds){
+			int index = 0;
+			while(index < listPeerHandlers.size()){
+				if (listPeerHandlers.get(index).getPeerId().equals(id)) {
+					if (listPeerHandlers.get(index).isHandshakeReceived()) {
+						if(type == Constants.TYPE_CHOKE_MESSAGE){
+							listPeerHandlers.get(index).sendChokeMessage(createMessage(type));
+							break;
+						}
+						if(type == Constants.TYPE_UNCHOKE_MESSAGE){
+							listPeerHandlers.get(index).sendUnchokeMessage(createMessage(type));
+							break;
+						}
+					} else {
+						break;
+					}
+				}
+				index++;
+			}
 		}
 	}
 
 	/**
-	 * generate PieceMessage
-	 * 
-	 * @param index
-	 * @return
+	 * Updates the list of choked peers and triggers the choke operation for the specified peer IDs.
+	 *
+	 * @param listPeerIds A list of peer IDs to be set as choked peers.
+	 * @author Sharan Sai Reddy Konda
 	 */
-	public PeerMessage genPieceMessage(int index) {
-		try {
-			Piece dataSegment = pieceManager.getNthPieceFromFile(index);
-			if (dataSegment != null) {
-				PeerMessage message = PeerMessage.create();
-				message.setData(dataSegment);
-				message.setIndex(index);
-				message.setMessageType(Constants.TYPE_PIECE_MESSAGE);
-				return message;
-			}
+	public void getAndSetChokePeers(ArrayList<String> listPeerIds) {
+		chokedPeers = listPeerIds;
+		handleChokeUnchokePeers(listPeerIds, Constants.TYPE_CHOKE_MESSAGE);
+	}
 
-			return null;
+	/**
+	 * Initiates the unchoking operation for the specified preferred peer IDs.
+	 *
+	 * @param listPeerIds A list of preferred peer IDs to be unchoked.
+	 * @author Bhavan Voram
+	 */
+	public void unchokePreferredPeers(ArrayList<String> listPeerIds) {
+		handleChokeUnchokePeers(listPeerIds, Constants.TYPE_UNCHOKE_MESSAGE);
+	}
+
+	/**
+	 * Inserts a piece into the piece manager, updating the bit field and logging the progress.
+	 * 
+	 * @author Adithya KNG
+	 * @param pieceMessage  The PeerMessage containing the piece to be inserted.
+	 * @param sourcePeerID  The ID of the peer that sent the piece.
+	 */
+	public void receiveAndStorePiece(PeerMessage pieceMessage, String sourcePeerID) {
+		synchronized(this){
+			try {
+				pieceHelper.insertNthPiece(pieceMessage.getIndex(), pieceMessage.getData());
+				logHelper.logMessage(String.format(Constants.FILE_PARTIAL_DOWNLOADE_LOG_MESSAGE, instance.getPeerId(),
+						pieceMessage.getIndex(), sourcePeerID,
+						pieceHelper.getBitFieldHelper().getCountOfDownloadedSegments()));
+			} catch (IOException e) {
+				System.out
+						.println("Exception occured while inserting the piece at nth position for the given peer. Message: "
+								+ e.getMessage());
+			}
+		}
+	}
+
+	/**
+     * Generates a PeerMessage containing a data segment (piece) from the specified index.
+     *
+     * @author Adithya KNG
+     * @param index The index of the data segment (piece) to be included in the PeerMessage.
+     * @return A PeerMessage containing the data segment, or null if an exception occurs.
+     */
+	public PeerMessage constructPieceMessage(int index) {
+		try {
+			Piece dataSegment = pieceHelper.getNthPieceFromFile(index);
+			if(dataSegment == null){
+				return null;
+			}
+			return PeerMessage.create(Constants.TYPE_PIECE_MESSAGE,index, dataSegment);
 		} catch (IOException e) {
 			System.out.println(
 					"Exception occured while extracting or generating piece message. Message: " + e.getMessage());
@@ -354,104 +499,80 @@ public class PeerController {
 	}
 
 	/**
-	 * send HaveMessage
+	 * Informs all other connected peers to terminate the connection as the current peer
+	 * will be shutting down due to task completion.
+	 * Marks the current peer as having successfully downloaded the file.
+	 * Sends shutdown messages to all other peers, allowing them to request missing pieces
+	 * from alternative sources.
 	 * 
-	 * @param pieceIndex
-	 * @param fromPeerID
+	 * @author Adithya KNG
 	 */
-	public void sendHaveMessage(int pieceIndex, String fromPeerID) {
-		PeerMessage haveMessage = PeerMessage.create();
-		haveMessage.setIndex(pieceIndex);
-		haveMessage.setMessageType(Constants.TYPE_HAVE_MESSAGE);
-
-		for (int i = 0, peerHandlersSize = peerHandlers.size(); i < peerHandlersSize; i++) {
-			PeerHandler peerHandler = peerHandlers.get(i);
-			// System.out.println(LOGGER_PREFIX+": Sending have message from "+peerID+" to :
-			// "+peerHandler.getPeerId());
-			if (fromPeerID.equals(peerHandler.getPeerId())) {
-				continue;
+	public void notifyPeersAboutShutdown() {
+		if(isConnectionDone() && peerServer.getServerStatus()){
+			// Mark that the current peer has successfully downloaded the file.
+			confirmFileDownload(peerId);
+			// Send shutdown messages to all other peers so that they can request the
+			// missing pieces from other peers.
+			for (PeerHandler peerHandler : listPeerHandlers) {
+				peerHandler.sendShutdownMessage(createMessage(Constants.TYPE_SHUTDOWN_MESSAGE));
 			}
-			peerHandler.sendHaveMessage(haveMessage);
 		}
 	}
 
 	/**
-	 * This function informs all other peers to terminate the connection as the
-	 * current peer will be shutting down due to completion of task.
-	 */
-	public void broadcastShutdown() {
-		if (isConnection() == false || peerServer.getServerStatus() == false) {
-			return;
-		}
-
-		// Create a shutdown mesage
-		PeerMessage shutdownMessage = PeerMessage.create();
-		shutdownMessage.setMessageType(Constants.TYPE_SHUTDOWN_MESSAGE);
-
-		// Mark that the current peer has successfully downloaded the file.
-		markFileDownloadComplete(peerId);
-
-		// Send shutdown messages to all other peers so that they can request the
-		// missing pieces from other peers.
-		for (PeerHandler peerHandler : peerHandlers) {
-			peerHandler.sendShutdownMessage(shutdownMessage);
-		}
-	}
-
-	/**
+	 * Calculates and returns the count of potential new connections based on the peers with
+	 * IDs greater than the current peer's ID.
 	 *
-	 * @return
+	 * @author Adithya KNG
+	 * @return The count of potential new connections.
 	 */
-	public int getMaxNewConnectionsCount() {
-		HashMap<String, Peer> neighborPeerMap = peerInfoHelperObj.getPeerMap();
-		Set<String> peerIDList = neighborPeerMap.keySet();
-
-		int count = 0;
-		for (Iterator<String> iterator = peerIDList.iterator(); iterator.hasNext();) {
-			String peerIdTmp = iterator.next();
-			if (Integer.parseInt(peerIdTmp) > Integer.parseInt(peerId)) {
-				count++;
+	public int calculatePossibleNewConnections() {
+		int number = 0;
+		int intPeerId = Integer.valueOf(peerId);
+		for(String peerMapId :  peerInfoHelperObj.getPeerMap().keySet()){
+			if(Integer.valueOf(peerMapId) > intPeerId){
+				number += 1;
 			}
 		}
-
-		return count;
+		return number;
 	}
 
-	public boolean isOperationFinish() {
-		return false;
+	/**
+	 * Marks the file download as completed for a specific peer.
+	 * 
+	 * @author Adithya KNG
+	 * @param id The identifier or id of the peer for which the file download is marked as complete.
+	 */
+	public synchronized void confirmFileDownload(String id) {
+		allPeerInfoMap.put(id, " ");
 	}
 
-	public synchronized void markFileDownloadComplete(String peer) {
-		// System.out.println("before, peerCompleteMap.size()="+peerCompleteMap.size());
-		peerCompleteMap.put(peer, " ");
-		// System.out.println("after, peerCompleteMap.size()="+peerCompleteMap.size());
-		// for(HashMap.Entry<String,String> entry : peerCompleteMap.entrySet())
-		// System.out.println("Key = " + entry.getKey() + ", Value = " +
-		// entry.getValue());
-	}
-
+	/**
+	 * Retrieves the unique identifier of the current peer.
+	 * 
+	 * @author Bhavan Voram
+	 * @return A string representing the peer identifier.
+	 */
 	public String getPeerId() {
 		return peerId;
 	}
 
-	public void setAllPeersConnection(boolean isAllPeersConnection) {
-		this.connectionEstablished = isAllPeersConnection;
+
+	/*
+	 * Terminate the piece helper
+	 * @author Sharan Sai Reddy Konda
+	 */
+	private void terminatePieceHelper() {
+		pieceHelper.close();
 	}
 
-	public ArrayList<String> getChokedPeers() {
-		return chokedPeers;
-	}
-
-	public synchronized LogHelper getLogger() {
-		return logger;
-	}
-
-	public boolean isConnection() {
-		return connectionEstablished;
-	}
-
-	public boolean isFileDownloadComplete() {
-		return pieceManager.hasDownloadFileComplete();
+	/**
+	 * Add the peerhandler into the list of peer handlers
+	 * @author Sharan Sai Reddy Konda
+	 * @param peerHandler
+	 */
+	public synchronized void setPeerToHandler(PeerHandler handler) {
+		listPeerHandlers.add(handler);
 	}
 
 }

@@ -88,16 +88,16 @@ public class PeerServer implements Runnable {
 			Peer serverPeerInfo = peerInfoMap.get(peerID);
 
 			serverSocket = new ServerSocket(serverPeerInfo.getPort());
-			int maxConnCount = controller.getMaxNewConnectionsCount();
+			int maxConnCount = controller.calculatePossibleNewConnections();
 			for (int i = 0; i < maxConnCount; i++) {
 				// Accept upto max connections
 				Socket incomingSocketConn = serverSocket.accept();
 
 				// Create a peer handler instnace
-				PeerHandler peerHandler = PeerHandler.getNewInstance(incomingSocketConn, controller);
+				PeerHandler peerHandler = PeerHandler.createNewPeerHandler(controller,incomingSocketConn);
 
 				// Register the peer handler with the controller
-				controller.addPeerHandler(peerHandler);
+				controller.setPeerToHandler(peerHandler);
 
 				// Start the peer handler
 				new Thread(peerHandler).start();
