@@ -76,7 +76,47 @@ public class MessageHelper implements Runnable {
 	 * @param message
 	 * @throws InterruptedException
 	 */
-	public void sendMessage(PeerMessageType message) throws InterruptedException {
+	public boolean sendMessage(PeerMessageType message) throws InterruptedException {
 		messageQueue.put(message);
+		return true;
+	}
+
+	/**
+	 * this function adds the send message request to the blocking queue which is
+	 * sent by the thread in the backgrround with try and catch
+	 * 
+	 * @param message
+	 * @throws InterruptedException
+	 */
+	public boolean sendMessageWithError(PeerMessageType message){
+		try{
+			messageQueue.put(message);
+		}catch(InterruptedException e){
+			// do nothing
+		}
+		return true;
+	}
+
+	/**
+	 * this function adds the send message request to the blocking queue which is
+	 * sent by the thread in the backgrround after certain delay
+	 * 
+	 * @param message
+	 * @param delay
+	 * @throws InterruptedException
+	 */
+	public boolean sendMessageWithDelay(PeerMessageType message, long delay) {
+		try {
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+		try{
+			messageQueue.put(message);
+			return true;
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return false;
 	}
 }

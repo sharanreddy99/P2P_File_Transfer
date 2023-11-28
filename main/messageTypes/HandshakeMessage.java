@@ -22,6 +22,15 @@ public class HandshakeMessage implements PeerMessageType {
         attachMessageNumber(this);
         this.header = header;
     }
+    /**
+     * Constructor to create a HandshakeMessage and attach a message number.
+     * and it
+     */
+    public HandshakeMessage(String header, String id) {
+        attachMessageNumber(this);
+        this.header = header;
+        setID(id);
+    }
 
     /**
      * Attach a message number to the HandshakeMessage.

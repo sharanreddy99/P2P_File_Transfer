@@ -116,7 +116,7 @@ public class NextRequestHelper implements Runnable {
 		if (missingPieceIdx != -1) {
 			sendInterestedMessage(missingPieceIdx);
 		} else {
-			peerHandler.sendNotInterestedMessage(PeerMessage.create(Constants.TYPE_NOT_INTERESTED_MESSAGE));
+			peerHandler.initiateNotInterestedMessage(PeerMessage.create(Constants.TYPE_NOT_INTERESTED_MESSAGE));
 		}
 	}
 
@@ -132,17 +132,17 @@ public class NextRequestHelper implements Runnable {
 		try {
 			neighborPeerBFH.setValueAtIndex(pieceIdx, true);
 			if (isCurrentPeerMissingThePiece(pieceIdx)) {
-				if (peerHandler.isPreviousMessageReceived()) {
-					peerHandler.setPreviousMessageReceived(false);
+				if (peerHandler.hasReceivedPreviousMessage()) {
+					peerHandler.setHasReceivedPreviousMessage(false);
 					sendInterestedMessage(pieceIdx);
 				}
 			} else if (randomPieceIdx != -1) {
-				if (peerHandler.isPreviousMessageReceived()) {
-					peerHandler.setPreviousMessageReceived(false);
+				if (peerHandler.hasReceivedPreviousMessage()) {
+					peerHandler.setHasReceivedPreviousMessage(false);
 					sendInterestedMessage(randomPieceIdx);
 				}
 			} else {
-				peerHandler.sendNotInterestedMessage(PeerMessage.create(Constants.TYPE_NOT_INTERESTED_MESSAGE));
+				peerHandler.initiateNotInterestedMessage(PeerMessage.create(Constants.TYPE_NOT_INTERESTED_MESSAGE));
 			}
 		} catch (Exception e) {
 			System.out.println(
@@ -158,7 +158,7 @@ public class NextRequestHelper implements Runnable {
 	public void handlePieceRequest() {
 		try {
 			int missingPieceIdx = getMissingPieceRandomIdx();
-			if (missingPieceIdx != -1 && peerHandler.isPreviousMessageReceived()) {
+			if (missingPieceIdx != -1 && peerHandler.hasReceivedPreviousMessage()) {
 				sendRequestMessage(missingPieceIdx);
 			}
 
@@ -176,7 +176,7 @@ public class NextRequestHelper implements Runnable {
 	private void handleUnchokeRequest() {
 		try {
 			int missingPieceIdx = getMissingPieceRandomIdx();
-			peerHandler.setPreviousMessageReceived(false);
+			peerHandler.setHasReceivedPreviousMessage(false);
 			if (missingPieceIdx != -1) {
 				sendRequestMessage(missingPieceIdx);
 			}
@@ -197,7 +197,7 @@ public class NextRequestHelper implements Runnable {
 		// Send interested message for the randomly found missing piece
 		PeerMessage newMessage = PeerMessage.create(Constants.TYPE_INTERESTED_MESSAGE);
 		newMessage.setIndex(pieceIdx);
-		peerHandler.sendInterestedMessage(newMessage);
+		peerHandler.initiateInterestedMessage(newMessage);
 
 		sendRequestMessage(pieceIdx);
 	}
@@ -211,7 +211,7 @@ public class NextRequestHelper implements Runnable {
 		// Request the piece after sending the interested message
 		PeerMessage newMessage = PeerMessage.create(Constants.TYPE_REQUEST_MESSAGE);
 		newMessage.setIndex(pieceIdx);
-		peerHandler.sendRequestMessage(newMessage);
+		peerHandler.initateRequestMessage(newMessage);
 	}
 
 	/**

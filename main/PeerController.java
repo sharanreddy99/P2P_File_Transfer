@@ -49,7 +49,7 @@ public class PeerController {
 		PeerMessage haveMessage = PeerMessage.create(Constants.TYPE_HAVE_MESSAGE,index);
 		for(PeerHandler peerHandler: listPeerHandlers){
 			if (!(givenPeerId.equals(peerHandler.getPeerId()))) {
-				peerHandler.sendHaveMessage(haveMessage);
+				peerHandler.initiateHaveMessage(haveMessage);
 			}
 		}
 	}
@@ -353,7 +353,7 @@ public class PeerController {
 			return downloadRates;
 		}
 		for(PeerHandler peerHandler: listPeerHandlers){
-			downloadRates.put(peerHandler.getPeerId(), peerHandler.downloadSpeed());
+			downloadRates.put(peerHandler.getPeerId(), peerHandler.getDownloadSpeed());
 		}
 		return downloadRates;
 	}
@@ -373,8 +373,8 @@ public class PeerController {
 		// Find the specified contender in the list of peer handlers and send an unchoke message
 		for (PeerHandler peerHandler : listPeerHandlers) {
 			if (peerHandler.getPeerId().equals(contenderID)) {
-				if (peerHandler.isHandshakeReceived()) {
-					peerHandler.sendUnchokeMessage(createMessage(Constants.TYPE_UNCHOKE_MESSAGE));
+				if (peerHandler.hasReceivedHandshake()) {
+					peerHandler.initiateUnchokeMessage(createMessage(Constants.TYPE_UNCHOKE_MESSAGE));
 				}
 				break;
 			}
@@ -416,13 +416,13 @@ public class PeerController {
 			int index = 0;
 			while(index < listPeerHandlers.size()){
 				if (listPeerHandlers.get(index).getPeerId().equals(id)) {
-					if (listPeerHandlers.get(index).isHandshakeReceived()) {
+					if (listPeerHandlers.get(index).hasReceivedHandshake()) {
 						if(type == Constants.TYPE_CHOKE_MESSAGE){
-							listPeerHandlers.get(index).sendChokeMessage(createMessage(type));
+							listPeerHandlers.get(index).initiateChokeMessage(createMessage(type));
 							break;
 						}
 						if(type == Constants.TYPE_UNCHOKE_MESSAGE){
-							listPeerHandlers.get(index).sendUnchokeMessage(createMessage(type));
+							listPeerHandlers.get(index).initiateUnchokeMessage(createMessage(type));
 							break;
 						}
 					} else {
@@ -514,7 +514,7 @@ public class PeerController {
 			// Send shutdown messages to all other peers so that they can request the
 			// missing pieces from other peers.
 			for (PeerHandler peerHandler : listPeerHandlers) {
-				peerHandler.sendShutdownMessage(createMessage(Constants.TYPE_SHUTDOWN_MESSAGE));
+				peerHandler.initiateShutdownMessage(createMessage(Constants.TYPE_SHUTDOWN_MESSAGE));
 			}
 		}
 	}
