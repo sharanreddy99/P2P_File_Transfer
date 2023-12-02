@@ -13,4 +13,4 @@
 
 ## Implementation Status:
 
-We have implemented the handshake mechanism so far. The other snippets implemented include logging, structures of some of the message types.
+We have successfully implemented a Peer to Peer Application which exchanges several different messages with other peers to send or receive pieces of data to download a file from others.

@@ -41,11 +41,11 @@ public class StartRemoteServers {
 
             // Prepare execution strings.
             String formatString = (Constants.IS_LOCAL_HOST ? "%s%s"
-                    : "ssh %s@%s cd %s && %s%s");
+                    : "scp ./ %s@%s:~/%s  ssh && %s@%s cd %s && %s%s");
 
             String execCommand = (Constants.IS_LOCAL_HOST
                     ? String.format(formatString, "make runPeer peerid=", peer.getPeerId())
-                    : String.format(formatString, userName, peer.getAddress(), path,
+                    : String.format(formatString, userName, peer.getAddress(), path, userName, peer.getAddress(), path,
                             runCommand, peer.getPeerId()));
 
             // Run the command to start peers locally or remotely.
@@ -97,4 +97,3 @@ class DisplayHelper implements Runnable {
         }
     }
 }
-
