@@ -36,16 +36,45 @@ public class StartRemoteServers {
             Thread.sleep(Constants.SSH_TIMEOUT);
         }
 
+        // Copy code to remote server
         for (String key : peerMap.keySet()) {
             Peer peer = peerMap.get(key);
 
             // Prepare execution strings.
             String formatString = (Constants.IS_LOCAL_HOST ? "%s%s"
-                    : "scp ./ %s@%s:~/%s  ssh && %s@%s cd %s && %s%s");
+                    : "scp -r ../%s %s@%s:~/");
 
             String execCommand = (Constants.IS_LOCAL_HOST
                     ? String.format(formatString, "make runPeer peerid=", peer.getPeerId())
-                    : String.format(formatString, userName, peer.getAddress(), path, userName, peer.getAddress(), path,
+                    : String.format(formatString, path, userName, peer.getAddress()));
+
+            // Run the command to start peers locally or remotely.
+            Process serverProcess = Runtime.getRuntime()
+                    .exec(execCommand);
+
+            DisplayHelper stdOut = new DisplayHelper(peer.getPeerId(),
+                    new BufferedReader(new InputStreamReader(serverProcess.getInputStream())));
+
+            DisplayHelper stdErr = new DisplayHelper(peer.getPeerId(),
+                    new BufferedReader(new InputStreamReader(serverProcess.getErrorStream())));
+
+            new Thread(stdOut).start();
+            new Thread(stdErr).start();
+            Thread.sleep(Constants.SSH_TIMEOUT);
+        }
+
+        // Execute code in remote server
+        for (String key : peerMap.keySet()) {
+            Peer peer = peerMap.get(key);
+
+            // Prepare execution strings.
+            String formatString = (Constants.IS_LOCAL_HOST ? "%s%s"
+                    : "ssh %s@%s cd %s && %s%s");
+
+            String execCommand = (Constants.IS_LOCAL_HOST
+                    ? String.format(formatString, "make runPeer peerid=", peer.getPeerId())
+                    : String.format(formatString, userName, peer.getAddress(),
+                            path,
                             runCommand, peer.getPeerId()));
 
             // Run the command to start peers locally or remotely.
