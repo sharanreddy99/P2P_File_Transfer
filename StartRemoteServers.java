@@ -31,11 +31,6 @@ public class StartRemoteServers {
         PeerInfoHelper fileReader = PeerInfoHelper.returnSingletonInstance();
         HashMap<String, Peer> peerMap = fileReader.getPeerMap();
 
-        if (Constants.IS_LOCAL_HOST) {
-            Runtime.getRuntime().exec("make");
-            Thread.sleep(Constants.SSH_TIMEOUT);
-        }
-
         // Copy code to remote server
         for (String key : peerMap.keySet()) {
             Peer peer = peerMap.get(key);
@@ -61,38 +56,48 @@ public class StartRemoteServers {
             new Thread(stdOut).start();
             new Thread(stdErr).start();
             Thread.sleep(Constants.SSH_TIMEOUT);
+            break;
         }
 
-        // Execute code in remote server
-        for (String key : peerMap.keySet()) {
-            Peer peer = peerMap.get(key);
+        boolean isCompile = true;
+        int idx = 1;
+        if (!Constants.IS_LOCAL_HOST) {
 
-            // Prepare execution strings.
-            String formatString = (Constants.IS_LOCAL_HOST ? "%s%s"
-                    : "ssh %s@%s cd %s && %s%s");
+            // Execute code in remote server
+            for (String key : peerMap.keySet()) {
+                Peer peer = peerMap.get(key);
 
-            String execCommand = (Constants.IS_LOCAL_HOST
-                    ? String.format(formatString, "make runPeer peerid=", peer.getPeerId())
-                    : String.format(formatString, userName, peer.getAddress(),
-                            path,
-                            runCommand, peer.getPeerId()));
+                String formatString = "./script.sh %s %s %s %s";
 
-            // Run the command to start peers locally or remotely.
-            Process serverProcess = Runtime.getRuntime()
-                    .exec(execCommand);
+                String execCommand = String.format(formatString, peer.getPeerId(), peer.getAddress(),
+                        idx++,
+                        isCompile);
 
-            DisplayHelper stdOut = new DisplayHelper(peer.getPeerId(),
-                    new BufferedReader(new InputStreamReader(serverProcess.getInputStream())));
+                // Run the command to start peers locally or remotely.
+                Process serverProcess = Runtime.getRuntime()
+                        .exec(execCommand);
 
-            DisplayHelper stdErr = new DisplayHelper(peer.getPeerId(),
-                    new BufferedReader(new InputStreamReader(serverProcess.getErrorStream())));
+                DisplayHelper stdOut = new DisplayHelper(peer.getPeerId(),
+                        new BufferedReader(new InputStreamReader(serverProcess.getInputStream())));
 
-            new Thread(stdOut).start();
-            new Thread(stdErr).start();
-            Thread.sleep(Constants.SSH_TIMEOUT);
+                DisplayHelper stdErr = new DisplayHelper(peer.getPeerId(),
+                        new BufferedReader(new InputStreamReader(serverProcess.getErrorStream())));
 
-            System.out.println(String.format("Started process for Peer: %s at host: %s on Port: %s", peer.getPeerId(),
-                    peer.getAddress(), peer.getPort()));
+                new Thread(stdOut).start();
+                new Thread(stdErr).start();
+
+                System.out
+                        .println(String.format("Started process for Peer: %s at host: %s on Port: %s", peer.getPeerId(),
+                                peer.getAddress(), peer.getPort()));
+
+                if (isCompile) {
+                    Thread.sleep(110 * 1000);
+                } else {
+                    Thread.sleep(15 * 1000);
+                }
+
+                isCompile = false;
+            }
         }
     }
 }

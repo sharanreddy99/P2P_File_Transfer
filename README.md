@@ -11,6 +11,20 @@
 - Command: `make && make runAll`
 - Explanation: This will compile all the necessary files and launch the peers with the configuration specified in the `PeerInfo.cfg` file.
 
-## Implementation Status:
+## Running our application on remote servers:
 
-We have successfully implemented a Peer to Peer Application which exchanges several different messages with other peers to send or receive pieces of data to download a file from others.
+This works as follows:
+
+- We run the `StartRemoteServers.java` file which will first copy the project to the servers as each server shares the volume with other linux instances.
+
+- We then compile the code in just one of the instances the project is soft linked in other instances.
+
+- We then run the `PeerProcess.java` in each server to start the peer server and share the information among peers.
+
+## CFG Files
+
+- As indicated in the requirements we have two .CFG files to store information related to the peering application and information related to the peers.
+
+## Establishing connections
+
+- Since the peers are started in the increasing order of their peerIDs, it will be sufficient if each peer sends a connection request or waits for a socket connection from all the peers that have a larger peerID.

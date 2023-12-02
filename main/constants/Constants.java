@@ -9,7 +9,7 @@ package main.constants;
  */
 public class Constants {
 	// RemotePeers
-	public static final int SSH_TIMEOUT = 2500; // SSH timeout in milliseconds
+	public static final int SSH_TIMEOUT = 90 * 1000; // SSH timeout in milliseconds
 	public static final boolean IS_LOCAL_HOST = false; // A boolean indicating if the host is local
 
 	// Logger Configuration
