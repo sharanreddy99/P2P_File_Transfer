@@ -597,7 +597,7 @@ public class PeerHandler implements Runnable {
 		if (peerMessage == null) {
 			return;
 		}
-		messageHelper.sendMessageWithDelay(peerMessage, 2000);
+		messageHelper.sendMessageWithError(peerMessage);
 	}
 
 	/**

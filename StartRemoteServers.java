@@ -59,7 +59,7 @@ public class StartRemoteServers {
             if (Constants.IS_LOCAL_HOST) {
                 Thread.sleep((Constants.SSH_TIMEOUT / 100));
             } else {
-                Thread.sleep(Constants.SSH_TIMEOUT);
+                Thread.sleep(Constants.SSH_TIMEOUT / 10);
                 break;
             }
         }
