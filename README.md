@@ -28,3 +28,7 @@ This works as follows:
 ## Establishing connections
 
 - Since the peers are started in the increasing order of their peerIDs, it will be sufficient if each peer sends a connection request or waits for a socket connection from all the peers that have a larger peerID.
+
+## Limitations
+
+- Since a lot of messages are transmitted among the peers, as the pieces increases, the amount of time our applications takes to run also proportionally increases.
