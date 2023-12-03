@@ -38,12 +38,6 @@ public class LogHelper {
      * Create the log file and initialize the write handler object.
      */
     private void createLogFile() {
-        String directory = "" + Constants.LOG_FILE_DIRECTORY_NAME;
-        File file = new File(directory);
-        if (!file.exists()) {
-            file.mkdirs();
-        }
-
         this.fileName = String.format("%s%s.log", Constants.LOG_FILE_NAME_PREFIX, peerID);
         try {
             this.logWriter = new BufferedWriter(new FileWriter(this.fileName));

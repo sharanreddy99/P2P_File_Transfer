@@ -10,7 +10,7 @@ package main.constants;
 public class Constants {
 	// RemotePeers
 	public static final int SSH_TIMEOUT = 90 * 1000; // SSH timeout in milliseconds
-	public static final boolean IS_LOCAL_HOST = false; // A boolean indicating if the host is local
+	public static final boolean IS_LOCAL_HOST = true; // A boolean indicating if the host is local
 
 	// Logger Configuration
 	public static final String LOG_FILE_DIRECTORY_NAME = "log";
@@ -51,7 +51,7 @@ public class Constants {
 	public static final String HANDSHAKE_HEADER_STRING = "P2PFILESHARINGPROJ";
 
 	// Pieces
-	public static final int MAX_PIECES_LIMIT = 1000;
+	public static final int MAX_PIECES_LIMIT = 10000;
 
 	// message id
 	public static final byte TYPE_HANDSHAKE_MESSAGE = 10;
@@ -69,6 +69,6 @@ public class Constants {
 	public static final int RAW_DATA_SIZE = 1000;
 	public static final int MAX_MESSAGE_SIZE = 40000;
 	public static final int SIZE_OF_EMPTY_MESSAGE = 1;
-	public static final int SENDER_QUEUE_SIZE = 100;
+	public static final int SENDER_QUEUE_SIZE = 100000;
 
 }

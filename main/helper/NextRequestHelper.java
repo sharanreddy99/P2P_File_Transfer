@@ -127,10 +127,10 @@ public class NextRequestHelper implements Runnable {
 	 */
 	public void handleHaveRequest(PeerMessage message) {
 		int pieceIdx = message.getIndex();
-		int randomPieceIdx = getMissingPieceRandomIdx();
-
 		try {
 			neighborPeerBFH.setValueAtIndex(pieceIdx, true);
+			int randomPieceIdx = getMissingPieceRandomIdx();
+
 			if (isCurrentPeerMissingThePiece(pieceIdx)) {
 				if (peerHandler.hasReceivedPreviousMessage()) {
 					peerHandler.setHasReceivedPreviousMessage(false);
@@ -159,6 +159,7 @@ public class NextRequestHelper implements Runnable {
 		try {
 			int missingPieceIdx = getMissingPieceRandomIdx();
 			if (missingPieceIdx != -1 && peerHandler.hasReceivedPreviousMessage()) {
+				peerHandler.setHasReceivedPreviousMessage(false);
 				sendRequestMessage(missingPieceIdx);
 			}
 

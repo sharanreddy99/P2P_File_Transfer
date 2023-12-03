@@ -55,8 +55,13 @@ public class StartRemoteServers {
 
             new Thread(stdOut).start();
             new Thread(stdErr).start();
-            Thread.sleep(Constants.SSH_TIMEOUT);
-            break;
+
+            if (Constants.IS_LOCAL_HOST) {
+                Thread.sleep((Constants.SSH_TIMEOUT / 100));
+            } else {
+                Thread.sleep(Constants.SSH_TIMEOUT);
+                break;
+            }
         }
 
         boolean isCompile = true;

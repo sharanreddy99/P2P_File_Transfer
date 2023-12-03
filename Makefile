@@ -1,4 +1,5 @@
 default:
+	find . -type f -path "./*" -name "*.class" -delete
 	javac StartRemoteServers.java
 
 runAll:

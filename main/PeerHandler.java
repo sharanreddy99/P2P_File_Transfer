@@ -72,12 +72,16 @@ public class PeerHandler implements Runnable {
 	}
 
 	/**
-	 * Creates a new PeerHandler instance, attaches the provided Socket and PeerController,
-	 * initializes the PeerHandler, and returns the created PeerHandler if initialization is successful.
+	 * Creates a new PeerHandler instance, attaches the provided Socket and
+	 * PeerController,
+	 * initializes the PeerHandler, and returns the created PeerHandler if
+	 * initialization is successful.
 	 *
-	 * @param controller The PeerController instance associated with the PeerHandler.
+	 * @param controller The PeerController instance associated with the
+	 *                   PeerHandler.
 	 * @param socket     The Socket associated with the PeerHandler.
-	 * @return A new PeerHandler instance if initialization is successful, otherwise null.
+	 * @return A new PeerHandler instance if initialization is successful, otherwise
+	 *         null.
 	 * @author Adithya KNG
 	 */
 	public static synchronized PeerHandler createNewPeerHandler(PeerController controller, Socket socket) {
@@ -90,7 +94,8 @@ public class PeerHandler implements Runnable {
 		// Initialize the PeerHandler
 		boolean initializeHandler = obj.preparePeerHandler(controller);
 
-		// Return the PeerHandler if initialization is successful, otherwise remove and return null
+		// Return the PeerHandler if initialization is successful, otherwise remove and
+		// return null
 		return initializeHandler ? obj : removePeerHandler(obj);
 	}
 
@@ -101,7 +106,7 @@ public class PeerHandler implements Runnable {
 	 * @return null, indicating the removal of the PeerHandler.
 	 * @author Adithya KNG
 	 */
-	public static PeerHandler removePeerHandler(PeerHandler obj){
+	public static PeerHandler removePeerHandler(PeerHandler obj) {
 		obj.closeStreams();
 		return obj = null;
 	}
@@ -128,14 +133,16 @@ public class PeerHandler implements Runnable {
 	 * @param controller The PeerController to attach.
 	 * @author Adithya KNG
 	 */
-	public void attachSocketAndControllerToPeerHandler(Socket socket, PeerController controllerInstance){
-		// Implementation to attach the provided Socket and PeerController to the PeerHandler
+	public void attachSocketAndControllerToPeerHandler(Socket socket, PeerController controllerInstance) {
+		// Implementation to attach the provided Socket and PeerController to the
+		// PeerHandler
 		this.neighborSocket = socket;
 		this.controller = controllerInstance;
 	}
 
 	/**
-	 * Prepares the PeerHandler for communication by setting up the necessary streams
+	 * Prepares the PeerHandler for communication by setting up the necessary
+	 * streams
 	 * and handling the initialization of the PeerHandler's message sender.
 	 *
 	 * @param pc The PeerController instance associated with the PeerHandler.
@@ -143,46 +150,50 @@ public class PeerHandler implements Runnable {
 	 * 
 	 * @author Sharan Sai Reddy Konda
 	 */
-	private boolean preparePeerHandler(PeerController pc) {
-		synchronized(this){
-			try {
-				// Check if the neighborSocket is not null
-				if (neighborSocket != null) {
-					// Set up output stream for sending objects
-					OutputStream socketOutputStream = neighborSocket.getOutputStream();
-					ObjectOutputStream peerOutputStream = new ObjectOutputStream(socketOutputStream);
+	private synchronized boolean preparePeerHandler(PeerController pc) {
 
-					// Set up input stream for receiving objects
-					InputStream socketInputStream = neighborSocket.getInputStream();
-					objectInputStream = new ObjectInputStream(socketInputStream);
+		try {
+			// Check if the neighborSocket is not null
+			if (neighborSocket != null) {
+				// Set up output stream for sending objects
+				OutputStream socketOutputStream = neighborSocket.getOutputStream();
+				ObjectOutputStream peerOutputStream = new ObjectOutputStream(socketOutputStream);
 
-					// Check if the controller is not null
-					if (controller != null) {
-						// Handle the initialization of the PeerHandler's message sender
-						return this.handlePeerMessageSender(pc, peerOutputStream);
-					}
+				// Set up input stream for receiving objects
+				InputStream socketInputStream = neighborSocket.getInputStream();
+				objectInputStream = new ObjectInputStream(socketInputStream);
 
-					// Close the connection if the controller is null
-					return closeStreams();
+				// Check if the controller is not null
+				if (controller != null) {
+					// Handle the initialization of the PeerHandler's message sender
+					return this.handlePeerMessageSender(pc, peerOutputStream);
 				}
-			} catch (Exception obj) {
-				// Handle any exceptions during the preparation process
-				obj.printStackTrace();
-				return false;
-			}
 
-			// Return false if the neighborSocket is null
+				// Close the connection if the controller is null
+				return closeStreams();
+			}
+		} catch (Exception obj) {
+			// Handle any exceptions during the preparation process
+			obj.printStackTrace();
 			return false;
 		}
+
+		// Return false if the neighborSocket is null
+		return false;
+
 	}
 
 	/**
-	 * Handles the initialization of the PeerHandler's message sender using the provided
-	 * ObjectOutputStream and starts the messageHelper. Additionally, it proceeds to handle
+	 * Handles the initialization of the PeerHandler's message sender using the
+	 * provided
+	 * ObjectOutputStream and starts the messageHelper. Additionally, it proceeds to
+	 * handle
 	 * the initialization of the NextRequestHelper and Logger for the PeerHandler.
 	 *
-	 * @param pc               The PeerController instance associated with the PeerHandler.
-	 * @param peerOutputStream The ObjectOutputStream for sending messages to the neighbor.
+	 * @param pc               The PeerController instance associated with the
+	 *                         PeerHandler.
+	 * @param peerOutputStream The ObjectOutputStream for sending messages to the
+	 *                         neighbor.
 	 * @return true if initialization and handling are successful, false otherwise.
 	 * @author Sharan Sai Reddy Konda
 	 */
@@ -202,11 +213,11 @@ public class PeerHandler implements Runnable {
 		return closeStreams();
 	}
 
-
 	/**
 	 * Starts a new thread for the messageHelper using the given MessageHelper.
 	 *
-	 * This method is responsible for initiating a new thread to handle message sending using the provided MessageHelper.
+	 * This method is responsible for initiating a new thread to handle message
+	 * sending using the provided MessageHelper.
 	 *
 	 * @param msgHelper The MessageHelper responsible for sending peer messages.
 	 */
@@ -215,7 +226,6 @@ public class PeerHandler implements Runnable {
 		new Thread(msgHelper).start();
 	}
 
-	
 	/**
 	 * Gets the unique identifier of the peer.
 	 *
@@ -245,22 +255,24 @@ public class PeerHandler implements Runnable {
 	 * @author Adithya KNG
 	 */
 	public boolean checkAndSendHandShakeMessageFirst(String id) {
-		// Check if the provided peer ID is not null, and if so, send a handshake message
+		// Check if the provided peer ID is not null, and if so, send a handshake
+		// message
 		return id != null ? initiateHandShakeMessage() : false;
 	}
 
-
 	/**
 	 * This method represents the main logic of the PeerMessageReceiver thread.
-	 * It continuously listens for incoming messages from the peer through the ObjectInputStream,
-	 * processes each message using the processAllMessages method, and sends a handshake message if needed.
+	 * It continuously listens for incoming messages from the peer through the
+	 * ObjectInputStream,
+	 * processes each message using the processAllMessages method, and sends a
+	 * handshake message if needed.
 	 * 
 	 * @author Sharan Sai Reddy Konda
 	 */
 	public void run() {
 		// Send the handshake message if not sent already
 		checkAndSendHandShakeMessageFirst(peerId);
-	
+
 		try {
 			// Continue listening for messages until the operation is complete
 			while (!controller.checkIfOperationComplete()) {
@@ -268,10 +280,10 @@ public class PeerHandler implements Runnable {
 				if (controller.checkIfOperationComplete()) {
 					break;
 				}
-	
+
 				// Read an object from the ObjectInputStream and cast it to PeerMessageType
 				PeerMessageType message = (PeerMessageType) objectInputStream.readObject();
-	
+
 				// Process the received message
 				processMessages(message);
 			}
@@ -282,59 +294,52 @@ public class PeerHandler implements Runnable {
 	}
 
 	/**
-	 * Processes a PeerMessageType, determining its type and invoking the appropriate action.
+	 * Processes a PeerMessageType, determining its type and invoking the
+	 * appropriate action.
 	 *
-	 * This method takes a PeerMessageType as input, identifies its type, and performs the
+	 * This method takes a PeerMessageType as input, identifies its type, and
+	 * performs the
 	 * corresponding action based on the message type.
 	 *
 	 * @param message The PeerMessageType to be processed.
 	 * @author Adithya KNG, Sharan Sai Reddy Konda, Bhavan Voram
 	 */
-	public void processMessages(PeerMessageType message){
+	public void processMessages(PeerMessageType message) {
 		// Get the type of the message
 		int type = message.messageType();
 
-		 // Check the type and perform the corresponding action
-		if( type ==  Constants.TYPE_HANDSHAKE_MESSAGE && (message instanceof HandshakeMessage)){
+		// Check the type and perform the corresponding action
+		if (type == Constants.TYPE_HANDSHAKE_MESSAGE && (message instanceof HandshakeMessage)) {
 			// If it's a HandshakeMessage, process the handshake
 			HandshakeMessage handshakeMessage = (HandshakeMessage) message;
 			processHandshakeMessage(handshakeMessage);
-		}
-		else if( type ==  Constants.TYPE_HAVE_MESSAGE) {
+		} else if (type == Constants.TYPE_HAVE_MESSAGE) {
 			// If it's a HaveMessage, process the message
 			PeerMessage pm = (PeerMessage) message;
-			haveMessage(pm.getIndex(),pm);
-		}
-		else if( type ==  Constants.TYPE_CHOKE_MESSAGE) {
+			haveMessage(pm.getIndex(), pm);
+		} else if (type == Constants.TYPE_CHOKE_MESSAGE) {
 			// If it's a ChokeMessage, process the message
 			chokeMessage();
-		}
-		else if( type ==  Constants.TYPE_SHUTDOWN_MESSAGE){
+		} else if (type == Constants.TYPE_SHUTDOWN_MESSAGE) {
 			// If it's a ShutdownMessage, process the message
 			shutDownMessage();
-		}
-		else if( type ==  Constants.TYPE_REQUEST_MESSAGE) {
+		} else if (type == Constants.TYPE_REQUEST_MESSAGE) {
 			// If it's a RequestMessage, process the message
 			PeerMessage pm = (PeerMessage) message;
 			requestMessage(pm.getIndex());
-		}
-		else if( type ==  Constants.TYPE_BITFIELD_MESSAGE){
+		} else if (type == Constants.TYPE_BITFIELD_MESSAGE) {
 			// If it's a BitFieldMessage, process the message
 			bitFieldMessage((PeerMessage) message);
-		}
-		else if( type ==  Constants.TYPE_INTERESTED_MESSAGE) {
+		} else if (type == Constants.TYPE_INTERESTED_MESSAGE) {
 			// If it's an InterestedMessage, process the message
 			interestedMessage();
-		}
-		else if( type ==  Constants.TYPE_PIECE_MESSAGE) {
+		} else if (type == Constants.TYPE_PIECE_MESSAGE) {
 			// If it's a PieceMessage, process the message
 			pieceMessage((PeerMessage) message);
-		}
-		else if( type ==  Constants.TYPE_UNCHOKE_MESSAGE) {
+		} else if (type == Constants.TYPE_UNCHOKE_MESSAGE) {
 			// If it's an UnchokeMessage, process the message
 			unchokeMessage((PeerMessage) message);
-		}
-		else if( type ==  Constants.TYPE_NOT_INTERESTED_MESSAGE) {
+		} else if (type == Constants.TYPE_NOT_INTERESTED_MESSAGE) {
 			// If it's a NotInterestedMessage, process the message
 			notInterestedMessage();
 		}
@@ -357,7 +362,8 @@ public class PeerHandler implements Runnable {
 	/**
 	 * Adds a PeerMessage to the message queue for further processing.
 	 *
-	 * This method is responsible for adding the given PeerMessage to the message queue
+	 * This method is responsible for adding the given PeerMessage to the message
+	 * queue
 	 * managed by the NextRequestHelper for subsequent processing.
 	 *
 	 * @param message The PeerMessage to be added to the message queue.
@@ -377,7 +383,8 @@ public class PeerHandler implements Runnable {
 	 * Processes an Unchoke message received from the neighbor peer.
 	 *
 	 * This method is called when the neighbor peer sends an Unchoke message,
-	 * indicating that it has unchoked the current peer, allowing for potential piece exchange.
+	 * indicating that it has unchoked the current peer, allowing for potential
+	 * piece exchange.
 	 *
 	 * @param msg The Unchoke message received from the neighbor peer.
 	 */
@@ -385,25 +392,32 @@ public class PeerHandler implements Runnable {
 		// Log the reception of the Unchoke message for monitoring purposes
 		logger.logMessage(String.format(Constants.UNCHOKED_LOG_MESSAGE, controller.getPeerId(), peerId));
 
-		// Toggle the flag to indicate that the current peer is no longer choked by the neighbor peer
+		// Toggle the flag to indicate that the current peer is no longer choked by the
+		// neighbor peer
 		toggleIsNeighborPeerChoking(false);
 
-		// Add the Unchoke message to the message queue for further processing, if needed
+		// Add the Unchoke message to the message queue for further processing, if
+		// needed
 		addMessageToQueue(msg);
 	}
 
 	/**
-	 * Sends a Have message to all other peers except the current peer and increments download-related metrics.
+	 * Sends a Have message to all other peers except the current peer and
+	 * increments download-related metrics.
 	 *
-	 * This method is called after processing a Piece message, and it sends a Have message
+	 * This method is called after processing a Piece message, and it sends a Have
+	 * message
 	 * indicating the availability of a new piece to all other peers in the system.
-	 * Additionally, it increments the total download size and sets a flag indicating the reception of the previous message.
+	 * Additionally, it increments the total download size and sets a flag
+	 * indicating the reception of the previous message.
 	 *
-	 * @param message The Piece message containing the newly received piece of file data.
+	 * @param message The Piece message containing the newly received piece of file
+	 *                data.
 	 * @author Bhavan Voram
 	 */
 	private void sendHaveMessageAndIncrementDownload(PeerMessage message) {
-		// Send a Have message to all other peers except the current peer, indicating the availability of a new piece
+		// Send a Have message to all other peers except the current peer, indicating
+		// the availability of a new piece
 		controller.sendHaveToAllExcept(message.getIndex(), peerId);
 
 		// Increment the total download size with the size of the received piece
@@ -414,7 +428,6 @@ public class PeerHandler implements Runnable {
 
 		addMessageToQueue(message);
 	}
-
 
 	/**
 	 * Processes a Piece message received from the neighbor peer.
@@ -430,16 +443,17 @@ public class PeerHandler implements Runnable {
 		// Receive and store the piece of file data in the controller
 		controller.receiveAndStorePiece(msg, peerId);
 
-		// Send a Have message to the neighbor peer and increment download-related metrics
+		// Send a Have message to the neighbor peer and increment download-related
+		// metrics
 		sendHaveMessageAndIncrementDownload(msg);
 	}
-	
-
 
 	/**
 	 * Handles the reception of a choke message from the neighbor peer.
-	 * This method logs the reception of the choke message, updates the 'isNeighborPeerChoking' status,
-	 * and performs any additional actions related to being choked by the neighbor peer.
+	 * This method logs the reception of the choke message, updates the
+	 * 'isNeighborPeerChoking' status,
+	 * and performs any additional actions related to being choked by the neighbor
+	 * peer.
 	 * 
 	 * @author Sharan Sai Reddy Konda
 	 */
@@ -450,7 +464,6 @@ public class PeerHandler implements Runnable {
 		// Update the 'isNeighborPeerChoking' status
 		toggleIsNeighborPeerChoking(true);
 	}
-
 
 	/**
 	 * Handles the reception of a BitField message from the neighbor peer.
@@ -484,7 +497,8 @@ public class PeerHandler implements Runnable {
 	}
 
 	/**
-	 * Handles the initialization of the NextRequestHelper and Logger for the PeerHandler
+	 * Handles the initialization of the NextRequestHelper and Logger for the
+	 * PeerHandler
 	 * using the provided PeerController.
 	 *
 	 * @param pc The PeerController instance associated with the PeerHandler.
@@ -492,7 +506,8 @@ public class PeerHandler implements Runnable {
 	 * @author Sharan Sai Reddy Konda
 	 */
 	public boolean handleChunkRequesterAndLogger(PeerController pc) {
-		// Initialize the NextRequestHelper using the provided PeerController and PeerHandler
+		// Initialize the NextRequestHelper using the provided PeerController and
+		// PeerHandler
 		nextChunkRequestHelper = NextRequestHelper.getNewInstance(pc, this);
 
 		// Obtain the Logger instance from the PeerController
@@ -502,15 +517,16 @@ public class PeerHandler implements Runnable {
 		return true;
 	}
 
-
 	/**
 	 * Initiates the process of handling a BitField message.
-	 * This method starts a new thread for the chunk requester, records the download time,
-	 * resets the download size, and sets the flag indicating the start of chunk processing.
+	 * This method starts a new thread for the chunk requester, records the download
+	 * time,
+	 * resets the download size, and sets the flag indicating the start of chunk
+	 * processing.
 	 * 
 	 * @author Adithya KNG
 	 */
-	private void handleBitFieldMessageProcess() {
+	private synchronized void handleBitFieldMessageProcess() {
 		// Start a new thread for the chunk requester
 		new Thread(nextChunkRequestHelper).start();
 
@@ -521,12 +537,11 @@ public class PeerHandler implements Runnable {
 		downloadSize = 0;
 
 		// Synchronize on 'this' to safely update the hasStartedChunkProcessing flag
-		synchronized (this) {
-			// Set the flag indicating the start of chunk processing
-			this.hasStartedChunkProcessing = true;
-		}
-	}
 
+		// Set the flag indicating the start of chunk processing
+		this.hasStartedChunkProcessing = true;
+
+	}
 
 	/**
 	 * processHandshakeMessage
@@ -544,14 +559,14 @@ public class PeerHandler implements Runnable {
 		} else {
 			if (message.getHeader().equals(Constants.HANDSHAKE_HEADER_STRING) &&
 					!hasReceivedHandshake) {
-						hasReceivedHandshake = true;
+				hasReceivedHandshake = true;
 				if (hasSentHandshake && !chunkStatus()) {
 					new Thread(nextChunkRequestHelper).start();
 					timeToDownload = System.currentTimeMillis();
 					downloadSize = 0;
-					synchronized(this){
-						this.hasStartedChunkProcessing = true;
-					}
+
+					this.hasStartedChunkProcessing = true;
+
 				}
 			} else {
 				if (Constants.SHOW_OPTIONAL_LOG_MESSAGES) {
@@ -564,7 +579,8 @@ public class PeerHandler implements Runnable {
 	}
 
 	/**
-	 * Initiates the process of requesting a piece of the file from the neighbor peer.
+	 * Initiates the process of requesting a piece of the file from the neighbor
+	 * peer.
 	 *
 	 * @param index The index of the piece to be requested.
 	 * @author Adithya KNG
@@ -581,14 +597,14 @@ public class PeerHandler implements Runnable {
 		if (peerMessage == null) {
 			return;
 		}
-		messageHelper.sendMessageWithDelay(peerMessage,2000);
+		messageHelper.sendMessageWithDelay(peerMessage, 2000);
 	}
-
 
 	/**
 	 * Processes a Have message received from the neighbor peer.
 	 *
-	 * @param message The Have message containing the index of a newly available piece.
+	 * @param message The Have message containing the index of a newly available
+	 *                piece.
 	 * @author Adithya KNG
 	 */
 	private void haveMessage(int index, PeerMessage message) {
@@ -627,7 +643,6 @@ public class PeerHandler implements Runnable {
 		handleException(e);
 	}
 
-
 	/**
 	 * Processes an Interested message received from the neighbor peer.
 	 *
@@ -645,54 +660,60 @@ public class PeerHandler implements Runnable {
 	/**
 	 * Initiates a handshake by sending a HandshakeMessage to the peer.
 	 *
-	 * This method is responsible for creating and sending a HandshakeMessage to the peer,
-	 * initiating the handshake process. It also updates relevant flags and logs the event.
+	 * This method is responsible for creating and sending a HandshakeMessage to the
+	 * peer,
+	 * initiating the handshake process. It also updates relevant flags and logs the
+	 * event.
 	 *
 	 * @return true if the handshake initiation is successful, false otherwise.
 	 * @author Adithya KNG
 	 */
-	boolean initiateHandShakeMessage() {
-		synchronized (this) {
-			// Create a HandshakeMessage with the appropriate header and peer ID
-			HandshakeMessage message = new HandshakeMessage(Constants.HANDSHAKE_HEADER_STRING, controller.getPeerId());
+	synchronized boolean initiateHandShakeMessage() {
 
-			try {
-				// Send the HandshakeMessage to the peer using the messageHelper
-				messageHelper.sendMessage(message);
-			} catch (Exception e) {
-				// Handle any exceptions that may occur during the message sending process
-				handleException(e);
-				return false;
-			}
+		// Create a HandshakeMessage with the appropriate header and peer ID
+		HandshakeMessage message = new HandshakeMessage(Constants.HANDSHAKE_HEADER_STRING, controller.getPeerId());
 
-			// Update the flag to indicate that the handshake has been sent
-			hasSentHandshake = true;
-
-			// Log the handshake initiation event
-			logger.logMessage(String.format(Constants.MAKE_CONNECTION_SENDER_LOG_MESSAGE, controller.getPeerId(), peerId));
-
-			// Optionally log the details of the handshake message
-			if (Constants.SHOW_OPTIONAL_LOG_MESSAGES) {
-				logger.logMessage(String.format(Constants.SENDER_HANDSHAKE_LOG_MESSAGE, controller.getPeerId(), peerId, message.getHeader()));
-			}
-
-			// Return true to indicate successful handshake initiation
-			return true;
+		try {
+			// Send the HandshakeMessage to the peer using the messageHelper
+			messageHelper.sendMessage(message);
+		} catch (Exception e) {
+			// Handle any exceptions that may occur during the message sending process
+			handleException(e);
+			return false;
 		}
-	}
 
+		// Update the flag to indicate that the handshake has been sent
+		hasSentHandshake = true;
+
+		// Log the handshake initiation event
+		logger.logMessage(
+				String.format(Constants.MAKE_CONNECTION_SENDER_LOG_MESSAGE, controller.getPeerId(), peerId));
+
+		// Optionally log the details of the handshake message
+		if (Constants.SHOW_OPTIONAL_LOG_MESSAGES) {
+			logger.logMessage(String.format(Constants.SENDER_HANDSHAKE_LOG_MESSAGE, controller.getPeerId(), peerId,
+					message.getHeader()));
+		}
+
+		// Return true to indicate successful handshake initiation
+		return true;
+
+	}
 
 	/**
 	 * Initiates the sending of a BitFieldMessage to the peer with a delay.
 	 *
-	 * This method is responsible for sending a BitFieldMessage to the peer using the messageHelper
-	 * with a specified delay. The synchronization ensures thread safety during the message sending process.
+	 * This method is responsible for sending a BitFieldMessage to the peer using
+	 * the messageHelper
+	 * with a specified delay. The synchronization ensures thread safety during the
+	 * message sending process.
 	 */
-	void initiateBitFieldMessage() {
-		synchronized(this){
-			// Send the BitFieldMessage to the peer using the messageHelper with a delay of 4000 milliseconds
-			messageHelper.sendMessageWithDelay(controller.getPeerMessage(), 4000);
-		}
+	synchronized void initiateBitFieldMessage() {
+
+		// Send the BitFieldMessage to the peer using the messageHelper with a delay of
+		// 4000 milliseconds
+		messageHelper.sendMessageWithDelay(controller.getPeerMessage(), 4000);
+
 	}
 
 	/**
@@ -707,10 +728,12 @@ public class PeerHandler implements Runnable {
 	 */
 	public void initiateInterestedMessage(PeerMessage msg) {
 		try {
-			// Check if the peer is not choked before attempting to send the InterestedMessage
+			// Check if the peer is not choked before attempting to send the
+			// InterestedMessage
 			boolean sendMessage = !isNeighborPeerChoking && messageHelper.sendMessage(msg);
 
-			// Optionally, handle the result or take further actions based on sendMessage value
+			// Optionally, handle the result or take further actions based on sendMessage
+			// value
 		} catch (Exception e) {
 			// Handle any exceptions that may occur during the message sending process
 			handleException(e);
@@ -727,17 +750,18 @@ public class PeerHandler implements Runnable {
 	 * @author Adithya KNG
 	 */
 	public void initiateNotInterestedMessage(PeerMessage msg) {
-		// Send the NotInterestedMessage to the peer using the messageHelper, potentially introducing an error
+		// Send the NotInterestedMessage to the peer using the messageHelper,
+		// potentially introducing an error
 		messageHelper.sendMessageWithError(msg);
 	}
-
-	
 
 	/**
 	 * Initiates the sending of a Have message to the neighbor peer.
 	 *
-	 * This method is responsible for initiating the sending of a Have message to the neighbor peer.
-	 * It sends the Have message using the messageHelper and handles any potential errors.
+	 * This method is responsible for initiating the sending of a Have message to
+	 * the neighbor peer.
+	 * It sends the Have message using the messageHelper and handles any potential
+	 * errors.
 	 *
 	 * @param message The Have message to be sent to the neighbor peer.
 	 * @author Bhavan Voram
@@ -747,12 +771,14 @@ public class PeerHandler implements Runnable {
 		messageHelper.sendMessageWithError(message);
 	}
 
-
 	/**
-	 * Initiates a Choke message to the neighbor peer if the current peer is not already choked.
+	 * Initiates a Choke message to the neighbor peer if the current peer is not
+	 * already choked.
 	 *
-	 * This method is responsible for initiating a Choke message to the neighbor peer
-	 * if the current peer is not already choked. It resets download-related metrics,
+	 * This method is responsible for initiating a Choke message to the neighbor
+	 * peer
+	 * if the current peer is not already choked. It resets download-related
+	 * metrics,
 	 * sets the choke flag, and sends the Choke message to the neighbor peer.
 	 *
 	 * @param msg The Choke message to be sent to the neighbor peer.
@@ -763,16 +789,19 @@ public class PeerHandler implements Runnable {
 		if (hasChoked) {
 			return;
 		}
+
 		// Perform the choking action and send the choke message
-		chokeUnchokeAction(true,msg);
+		chokeUnchokeAction(true, msg);
 	}
 
-
 	/**
-	 * Initiates an Unchoke message to the neighbor peer if the current peer is currently choked.
+	 * Initiates an Unchoke message to the neighbor peer if the current peer is
+	 * currently choked.
 	 *
-	 * This method is responsible for initiating an Unchoke message to the neighbor peer
-	 * if the current peer is currently choked. It performs the unchoking action and sends the Unchoke message.
+	 * This method is responsible for initiating an Unchoke message to the neighbor
+	 * peer
+	 * if the current peer is currently choked. It performs the unchoking action and
+	 * sends the Unchoke message.
 	 *
 	 * @param msg The Unchoke message to be sent to the neighbor peer.
 	 */
@@ -781,19 +810,23 @@ public class PeerHandler implements Runnable {
 		if (!hasChoked) {
 			return;
 		}
+
 		// Perform the unchoking action and send the Unchoke message
 		chokeUnchokeAction(false, msg);
 	}
 
-
 	/**
-	 * Performs the choke or unchoke action and sends the corresponding message to the neighbor peer.
+	 * Performs the choke or unchoke action and sends the corresponding message to
+	 * the neighbor peer.
 	 *
-	 * This method is responsible for performing either the choke or unchoke action based on the specified parameter.
-	 * It resets download-related metrics, sets the choke flag accordingly, and sends the corresponding message to the neighbor peer.
+	 * This method is responsible for performing either the choke or unchoke action
+	 * based on the specified parameter.
+	 * It resets download-related metrics, sets the choke flag accordingly, and
+	 * sends the corresponding message to the neighbor peer.
 	 *
-	 * @param choke A boolean indicating whether to perform the choke action (true) or unchoke action (false).
-	 * @param msg The Choke or Unchoke message to be sent to the neighbor peer.
+	 * @param choke A boolean indicating whether to perform the choke action (true)
+	 *              or unchoke action (false).
+	 * @param msg   The Choke or Unchoke message to be sent to the neighbor peer.
 	 * @author Adithya KNG
 	 */
 	public void chokeUnchokeAction(Boolean choke, PeerMessage msg) {
@@ -808,8 +841,6 @@ public class PeerHandler implements Runnable {
 		messageHelper.sendMessageWithError(msg);
 	}
 
-	
-
 	/**
 	 * Checks if the peer has received the previous message.
 	 *
@@ -822,7 +853,8 @@ public class PeerHandler implements Runnable {
 	/**
 	 * Sets the flag indicating whether the previous message has been received.
 	 *
-	 * @param isPieceMessageForPreviousMessageReceived True if the previous message is received, false otherwise.
+	 * @param isPieceMessageForPreviousMessageReceived True if the previous message
+	 *                                                 is received, false otherwise.
 	 */
 	public void setHasReceivedPreviousMessage(boolean isPieceMessageForPreviousMessageReceived) {
 		this.hasReceivedPreviousMessage = isPieceMessageForPreviousMessageReceived;
@@ -837,11 +869,11 @@ public class PeerHandler implements Runnable {
 		return hasReceivedHandshake;
 	}
 
-
 	/**
 	 * Sends a Shutdown message to the neighbor peer.
 	 *
-	 * This method is responsible for sending a Shutdown message to the neighbor peer,
+	 * This method is responsible for sending a Shutdown message to the neighbor
+	 * peer,
 	 * indicating the intention to shut down the communication.
 	 *
 	 * @param message The Shutdown message to be sent to the neighbor peer.
@@ -862,23 +894,27 @@ public class PeerHandler implements Runnable {
 	 * @author Sharan Sai Reddy Konda
 	 */
 	public double getDownloadSpeed() {
-		return (System.currentTimeMillis() - timeToDownload) != 0 ? ((downloadSize * 1.0) / ((System.currentTimeMillis() - timeToDownload) * 1.0)) : 0;
+		return (System.currentTimeMillis() - timeToDownload) != 0
+				? ((downloadSize * 1.0) / ((System.currentTimeMillis() - timeToDownload) * 1.0))
+				: 0;
 	}
 
 	/**
-	 * Processes a Shutdown message indicating that the peer with the given peerId has completed file download.
+	 * Processes a Shutdown message indicating that the peer with the given peerId
+	 * has completed file download.
 	 *
-	 * This method is called when a Shutdown message is received, and it notifies the controller
-	 * that the peer with the specified peerId has completed the file download process.
+	 * This method is called when a Shutdown message is received, and it notifies
+	 * the controller
+	 * that the peer with the specified peerId has completed the file download
+	 * process.
 	 * 
 	 * @author Bhavan Voram
 	 */
 	public void shutDownMessage() {
-		// Notify the controller that the peer with the given peerId has completed file download
+		// Notify the controller that the peer with the given peerId has completed file
+		// download
 		controller.confirmFileDownload(peerId);
 	}
-
-	
 
 	public synchronized boolean chunkStatus() {
 		return hasStartedChunkProcessing;
@@ -888,7 +924,8 @@ public class PeerHandler implements Runnable {
 	 * Sends a Request message to the neighbor peer if the current peer is unchoked.
 	 *
 	 * This method is responsible for sending a Request message to the neighbor peer
-	 * if the current peer is unchoked, indicating the interest in obtaining a specific piece of the file.
+	 * if the current peer is unchoked, indicating the interest in obtaining a
+	 * specific piece of the file.
 	 *
 	 * @param message The Request message to be sent to the neighbor peer.
 	 * @author Sharan Sai Reddy Konda
@@ -898,7 +935,7 @@ public class PeerHandler implements Runnable {
 		boolean sendMessage = !isNeighborPeerChoking ? messageHelper.sendMessageWithError(msg) : false;
 	}
 
-	public void toggleIsNeighborPeerChoking(boolean value){
+	public void toggleIsNeighborPeerChoking(boolean value) {
 		isNeighborPeerChoking = value;
 	}
 
