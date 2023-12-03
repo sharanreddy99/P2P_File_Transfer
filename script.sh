@@ -4,7 +4,7 @@ function execute() {
 
     echo "starting peer $1"
     if [[ "$4" == "true" ]]; then
-        ssh kondas@$2 "cd cn_project && make runCodebase"
+        ssh kondas@$2 "cd cn_project && make runCompile"
         sleep 60
     fi
 

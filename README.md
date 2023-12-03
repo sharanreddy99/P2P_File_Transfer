@@ -8,7 +8,16 @@
 
 ## Instructions to Run:
 
+### Remotely
+
+- set the `IS_LOCAL_HOST` to false in the `main/constants/Constants.java`` file.
 - Command: `make && make runAll`
+- Explanation: This will compile all the necessary files and launch the peers with the configuration specified in the `PeerInfo.cfg` file.
+
+### Locally
+
+- set the `IS_LOCAL_HOST` to true in the `main/constants/Constants.java`` file.
+- Command: `make && make runCompile && make runAll`
 - Explanation: This will compile all the necessary files and launch the peers with the configuration specified in the `PeerInfo.cfg` file.
 
 ## Running our application on remote servers:
@@ -28,7 +37,3 @@ This works as follows:
 ## Establishing connections
 
 - Since the peers are started in the increasing order of their peerIDs, it will be sufficient if each peer sends a connection request or waits for a socket connection from all the peers that have a larger peerID.
-
-## Limitations
-
-- Since a lot of messages are transmitted among the peers, as the pieces increases, the amount of time our applications takes to run also proportionally increases.

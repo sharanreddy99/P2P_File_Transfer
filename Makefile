@@ -5,7 +5,7 @@ default:
 runAll:
 	java StartRemoteServers
 
-runCodebase:
+runCompile:
 	rm -rf peer_1002
 	rm -rf peer_1003
 	rm -rf peer_1004
